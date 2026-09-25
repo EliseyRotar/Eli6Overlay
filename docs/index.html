@@ -3,11 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Eli6Overlay — OBS sees nothing.</title>
-  <meta name="description" content="Eli6Overlay hides your browser window from OBS, Discord screen share, Zoom, and every Windows screenshot tool. Free, open source, Windows 10/11." />
-  <meta property="og:title" content="Eli6Overlay" />
-  <meta property="og:description" content="OBS sees nothing. Discord sees nothing. Your screen share shows a blank rectangle." />
+
+  <!-- ── Primary SEO ── -->
+  <title>Eli6Overlay — Invisible Browser Overlay for Windows | Hide from OBS, Discord, Zoom</title>
+  <meta name="description" content="Eli6Overlay is a free, open-source transparent browser overlay for Windows 10/11 that is completely invisible to OBS, Discord screen share, Zoom, Teams, and screenshots. Uses SetWindowDisplayAffinity WDA_EXCLUDEFROMCAPTURE." />
+  <meta name="keywords" content="eli6overlay, invisible browser windows, anti screen capture, hide window from obs, hide from discord screen share, hide from zoom screen share, transparent overlay windows, always on top browser, WDA_EXCLUDEFROMCAPTURE, SetWindowDisplayAffinity, electron overlay, stealth browser, screen capture protection windows, hide browser from recording, obs invisible window, discord invisible browser, zoom invisible overlay, windows screen recording bypass, skip taskbar electron, frameless browser overlay, private browser overlay, anti capture browser, hide app from screen share, obs bypass windows api, electron setcontentprotection, windows display affinity, free screen capture blocker, open source invisible overlay" />
+  <meta name="author" content="eli6" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://eliseyrotar.github.io/Eli6Overlay/" />
+
+  <!-- ── Open Graph (Facebook, Discord, Telegram unfurls) ── -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Eli6Overlay — Browser Overlay Invisible to OBS, Discord & Zoom" />
+  <meta property="og:description" content="Free open-source Windows tool that hides your browser from OBS, Discord screen share, Zoom, Teams and every screenshot tool. Uses the same Windows API as Netflix DRM." />
   <meta property="og:url" content="https://eliseyrotar.github.io/Eli6Overlay/" />
+  <meta property="og:site_name" content="Eli6Overlay" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="it_IT" />
+
+  <!-- ── Twitter Card ── -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Eli6Overlay — Invisible browser overlay for Windows" />
+  <meta name="twitter:description" content="OBS sees nothing. Discord sees nothing. Free open-source browser overlay using WDA_EXCLUDEFROMCAPTURE." />
+
+  <!-- ── Structured data (JSON-LD) ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Eli6Overlay",
+    "operatingSystem": "Windows 10, Windows 11",
+    "applicationCategory": "UtilitiesApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "A free, open-source transparent browser overlay for Windows that is completely invisible to OBS, Discord screen share, Zoom, Teams, and screenshots using the Windows API SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE).",
+    "author": {
+      "@type": "Person",
+      "name": "eli6",
+      "url": "https://github.com/EliseyRotar"
+    },
+    "url": "https://eliseyrotar.github.io/Eli6Overlay/",
+    "downloadUrl": "https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe",
+    "softwareVersion": "1.0.0",
+    "license": "https://github.com/EliseyRotar/Eli6Overlay/blob/master/LICENSE",
+    "codeRepository": "https://github.com/EliseyRotar/Eli6Overlay",
+    "keywords": "invisible browser, anti screen capture, OBS hide window, Discord screen share bypass, transparent overlay"
+  }
+  </script>
+
+  <!-- ── Alternate languages ── -->
+  <link rel="alternate" hreflang="en" href="https://eliseyrotar.github.io/Eli6Overlay/" />
+  <link rel="alternate" hreflang="it" href="https://eliseyrotar.github.io/Eli6Overlay/" />
+  <link rel="alternate" hreflang="x-default" href="https://eliseyrotar.github.io/Eli6Overlay/" />
+
+  <!-- ── Sitemap hint ── -->
+  <link rel="sitemap" type="application/xml" href="/Eli6Overlay/sitemap.xml" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -946,7 +1000,23 @@ function setLang(lang) {
   try { localStorage.setItem('eli6_lang', lang); } catch(_) {}
 }
 
-(function(){ try { const l=localStorage.getItem('eli6_lang'); if(l) setLang(l); } catch(_){} })();
+// ── Auto-detect language on first visit, restore saved preference afterwards ──
+(function() {
+  try {
+    // If user has manually chosen a language before, respect that
+    const saved = localStorage.getItem('eli6_lang');
+    if (saved && T[saved]) { setLang(saved); return; }
+
+    // Otherwise auto-detect from browser/OS language
+    const langs = navigator.languages || [navigator.language || navigator.userLanguage || 'en'];
+    for (const l of langs) {
+      const code = l.toLowerCase().split('-')[0]; // 'it-IT' → 'it'
+      if (T[code]) { setLang(code); return; }
+    }
+    // Fallback: English
+    setLang('en');
+  } catch(_) { setLang('en'); }
+})();
 </script>
 </body>
 </html>

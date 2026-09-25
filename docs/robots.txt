@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://eliseyrotar.github.io/Eli6Overlay/sitemap.xml
