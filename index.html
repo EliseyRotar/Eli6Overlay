@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src *; frame-src *;" />
+  <title>Eli6Overlay</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TITLE BAR / DRAG REGION
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="titlebar">
+  <span id="app-title">Eli6Overlay</span>
+
+  <!-- Language switcher -->
+  <div id="lang-switcher">
+    <button id="btn-en" class="lang-btn active" title="English">EN</button>
+    <span class="lang-sep">|</span>
+    <button id="btn-it" class="lang-btn" title="Italiano">IT</button>
+  </div>
+
+  <!-- Window controls -->
+  <div id="win-controls">
+    <button id="btn-settings" class="ctrl-btn" title="Settings">⚙</button>
+    <button id="btn-minimize" class="ctrl-btn" title="Hide overlay">_</button>
+    <button id="btn-close"    class="ctrl-btn close-btn" title="Hide overlay">✕</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TAB BAR
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="tab-bar">
+  <div id="tabs-list"></div>
+  <button id="btn-new-tab" title="New Tab">+</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     NAVIGATION BAR
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="nav-bar">
+  <button id="btn-back"    class="nav-btn" title="Back">&#8592;</button>
+  <button id="btn-forward" class="nav-btn" title="Forward">&#8594;</button>
+  <button id="btn-refresh" class="nav-btn" title="Refresh">&#8635;</button>
+  <button id="btn-home"    class="nav-btn" title="Home">⌂</button>
+
+  <input id="url-bar" type="text" data-i18n="urlPlaceholder" data-i18n-attr="placeholder"
+         spellcheck="false" autocomplete="off" />
+
+  <button id="btn-mute" class="nav-btn" title="Mute">🔊</button>
+
+  <!-- Quick bookmarks -->
+  <div id="bookmarks-bar">
+    <button class="bm-btn" data-url="https://chatgpt.com"         data-i18n="bmChatGPT">ChatGPT</button>
+    <button class="bm-btn" data-url="https://google.com"          data-i18n="bmGoogle">Google</button>
+    <button class="bm-btn" data-url="https://wikipedia.org"       data-i18n="bmWikipedia">Wikipedia</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     WEBVIEW CONTAINER  (browser tabs live here as <webview> elements)
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="webview-container"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SCRATCHPAD PANEL  (hidden by default, shown on Scratchpad tab)
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="scratchpad-panel" class="hidden">
+  <textarea id="scratchpad-text"
+            data-i18n="scratchpadPH" data-i18n-attr="placeholder"
+            spellcheck="true"></textarea>
+  <div id="scratchpad-status"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SETTINGS PANEL  (slide-in from right)
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="settings-panel" class="hidden">
+  <h3 data-i18n="settings">Settings</h3>
+  <button id="settings-close" class="ctrl-btn">✕</button>
+
+  <!-- Opacity -->
+  <div class="setting-row">
+    <label for="opacity-slider" data-i18n="opacity">Opacity</label>
+    <input id="opacity-slider" type="range" min="10" max="100" value="90" step="5" />
+    <span id="opacity-val">90%</span>
+  </div>
+
+  <!-- Click-through toggle -->
+  <div class="setting-row">
+    <label data-i18n="clickThrough">Click-Through</label>
+    <button id="btn-click-through" class="toggle-btn" data-state="off"
+            data-i18n="clickThroughOff">OFF — window catches clicks</button>
+  </div>
+
+  <!-- Auto-mute -->
+  <div class="setting-row">
+    <label data-i18n="autoMute">Auto-Mute when hidden</label>
+    <input id="chk-auto-mute" type="checkbox" checked />
+  </div>
+
+  <!-- Hide on blank click -->
+  <div class="setting-row">
+    <label data-i18n="hideOnBlank">Hide on blank click</label>
+    <input id="chk-hide-on-blank" type="checkbox" checked />
+  </div>
+
+  <!-- Hotkeys reference -->
+  <div id="hotkeys-section">
+    <h4 data-i18n="hotkeys">Hotkeys</h4>
+    <ul>
+      <li data-i18n="hkToggle">Win+G / Ctrl+Shift+G → Show/Hide</li>
+      <li data-i18n="hkClickThrough">Win+Shift+C → Toggle Click-Through</li>
+      <li data-i18n="hkEscape">Escape → Panic Hide</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     STATUS BAR
+══════════════════════════════════════════════════════════════════════════════ -->
+<div id="status-bar">
+  <span id="status-msg"></span>
+  <span id="click-through-indicator" class="hidden">● CLICK-THROUGH</span>
+</div>
+
+<!-- Scripts (order matters: i18n must load before renderer) -->
+<script src="i18n.js"></script>
+<script src="renderer.js"></script>
+</body>
+</html>

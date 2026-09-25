@@ -1,0 +1,59 @@
+{
+  "name": "eli6overlay",
+  "version": "1.0.0",
+  "description": "Anti-capture transparent browser overlay with stealth mode",
+  "main": "main.js",
+  "author": "EliseyRotar <nutellaelik@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable",
+    "build:nsis": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "32.2.7",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.eliseyrotar.eli6overlay",
+    "productName": "Eli6Overlay",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "styles.css",
+      "renderer.js",
+      "i18n.js",
+      "assets/**/*"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Eli6Overlay",
+      "artifactName": "Eli6Overlay-Setup.exe"
+    },
+    "portable": {
+      "artifactName": "Eli6Overlay-Setup.exe"
+    }
+  }
+}
