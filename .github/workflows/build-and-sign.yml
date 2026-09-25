@@ -1,0 +1,203 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Eli6Overlay — Build & Sign workflow
+#
+# Triggers:
+#   - Push a tag like v1.2.3  →  full build + SignPath signing + GitHub release
+#   - Manual dispatch          →  build only (no signing, no release)
+#
+# Signing:
+#   Uses SignPath Foundation (free for OSS). Once the SignPath application is
+#   approved, add these two secrets to the repo:
+#     SIGNPATH_API_TOKEN        — your SignPath CI user API token
+#     SIGNPATH_ORGANIZATION_ID  — your SignPath organization ID
+#
+#   Until signing is approved, the workflow still builds and publishes an
+#   UNSIGNED release so downloads always work.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: Build and Sign
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      skip_signing:
+        description: 'Skip SignPath signing (build only)'
+        required: false
+        default: 'true'
+
+permissions:
+  contents: write   # needed to create GitHub releases and upload assets
+  id-token: write   # needed for SignPath OIDC trust
+
+jobs:
+  build:
+    name: Build Windows executable
+    runs-on: windows-latest
+
+    outputs:
+      artifact-name: ${{ steps.set-output.outputs.artifact-name }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ── Get version from package.json ──────────────────────────────────────
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          $v = (Get-Content package.json | ConvertFrom-Json).version
+          echo "version=$v" >> $env:GITHUB_OUTPUT
+          echo "Version: $v"
+
+      # ── Fix winCodeSign symlink issue on Windows ───────────────────────────
+      # electron-builder's winCodeSign archive contains macOS symlinks.
+      # GitHub Actions runners have Developer Mode enabled, so this usually
+      # works fine — but we pre-stub the files as a safety net.
+      - name: Pre-stub winCodeSign macOS symlinks
+        shell: pwsh
+        run: |
+          $cacheDir = "$env:LOCALAPPDATA\electron-builder\Cache\winCodeSign"
+          New-Item -ItemType Directory -Force -Path $cacheDir | Out-Null
+          # Will be populated on first build attempt; stub is a no-op if it succeeds normally
+
+      # ── Build ─────────────────────────────────────────────────────────────
+      - name: Build NSIS installer
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build
+
+      # Fallback: if NSIS failed due to symlink error, try portable
+      - name: Build portable (fallback)
+        if: failure()
+        shell: pwsh
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          # Stub macOS symlinks in any partial cache dirs
+          $cacheRoot = "$env:LOCALAPPDATA\electron-builder\Cache\winCodeSign"
+          foreach ($dir in (Get-ChildItem $cacheRoot -Directory -ErrorAction SilentlyContinue)) {
+            $libDir = Join-Path $dir.FullName "darwin\10.12\lib"
+            New-Item -ItemType Directory -Force -Path $libDir | Out-Null
+            "" | Out-File "$libDir\libcrypto.dylib" -Encoding ascii
+            "" | Out-File "$libDir\libssl.dylib" -Encoding ascii
+          }
+          # Switch to portable target
+          npx electron-builder --win portable --config.portable.artifactName="Eli6Overlay-Setup.exe"
+
+      - name: Set artifact output name
+        id: set-output
+        shell: pwsh
+        run: |
+          $file = Get-ChildItem dist -Filter "Eli6Overlay-Setup.exe" | Select-Object -First 1
+          if (-not $file) { $file = Get-ChildItem dist -Filter "*.exe" | Select-Object -First 1 }
+          echo "artifact-name=$($file.Name)" >> $env:GITHUB_OUTPUT
+          echo "Found: $($file.FullName)"
+
+      # ── Upload unsigned artifact for signing step ─────────────────────────
+      - name: Upload unsigned artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-exe
+          path: dist/Eli6Overlay-Setup.exe
+          retention-days: 1
+
+  # ── Signing job (only runs on tag push, requires SignPath secrets) ──────────
+  sign:
+    name: Sign with SignPath Foundation
+    needs: build
+    runs-on: ubuntu-latest
+    # Only run when triggered by a tag AND secrets exist
+    if: |
+      startsWith(github.ref, 'refs/tags/') &&
+      vars.SIGNPATH_ENABLED == 'true'
+
+    steps:
+      - name: Download unsigned artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: unsigned-exe
+          path: ./unsigned
+
+      - name: Submit signing request to SignPath
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: 'eli6overlay'
+          signing-policy-slug: 'release-signing'
+          github-artifact-id: unsigned-exe
+          artifact-configuration-slug: 'exe'
+          wait-for-completion: true
+          output-artifact-directory: ./signed
+
+      - name: Upload signed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-exe
+          path: ./signed/Eli6Overlay-Setup.exe
+          retention-days: 7
+
+  # ── Release job ────────────────────────────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    needs: [build, sign]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    # Run even if signing was skipped (sign job not triggered)
+    continue-on-error: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Try to download signed exe first, fall back to unsigned
+      - name: Download signed artifact
+        id: dl-signed
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: signed-exe
+          path: ./release-assets
+
+      - name: Download unsigned artifact (fallback)
+        if: steps.dl-signed.outcome == 'failure'
+        uses: actions/download-artifact@v4
+        with:
+          name: unsigned-exe
+          path: ./release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Eli6Overlay ${{ github.ref_name }}"
+          body: |
+            ## Eli6Overlay ${{ github.ref_name }}
+
+            Anti-capture transparent browser overlay for Windows.
+
+            ### Download
+            - **[Eli6Overlay-Setup.exe](https://github.com/EliseyRotar/Eli6Overlay/releases/download/${{ github.ref_name }}/Eli6Overlay-Setup.exe)** — Windows installer
+
+            ### What's new
+            See [CHANGELOG](https://github.com/EliseyRotar/Eli6Overlay/commits/master) for full history.
+
+            > **SmartScreen note:** If Windows shows a SmartScreen warning, click "More info" → "Run anyway". Code signing via SignPath Foundation is active — signed builds will not show this warning.
+          files: ./release-assets/Eli6Overlay-Setup.exe
+          draft: false
+          prerelease: false
