@@ -1,21 +1,21 @@
 {
   "name": "eli6overlay",
-  "version": "1.0.0",
-  "description": "Anti-capture transparent browser overlay with stealth mode",
+  "version": "1.1.0",
+  "description": "Anti-capture transparent browser overlay for Windows",
   "main": "main.js",
-  "author": "EliseyRotar <nutellaelik@gmail.com>",
+  "author": "eli6 <nutellaelik@gmail.com>",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win portable",
-    "build:nsis": "electron-builder --win nsis"
+    "build": "electron-builder --win nsis",
+    "build:portable": "electron-builder --win portable"
   },
   "devDependencies": {
     "electron": "32.2.7",
     "electron-builder": "25.1.8"
   },
   "build": {
-    "appId": "com.eliseyrotar.eli6overlay",
+    "appId": "com.eli6.eli6overlay",
     "productName": "Eli6Overlay",
     "directories": {
       "output": "dist"
@@ -27,33 +27,31 @@
       "styles.css",
       "renderer.js",
       "i18n.js",
+      "logo.png",
       "assets/**/*"
     ],
-    "extraResources": [],
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        }
+        { "target": "nsis",     "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
       ],
       "icon": "assets/icon.ico",
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
-      "oneClick": false,
+      "oneClick": true,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
+      "allowElevation": false,
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",
-      "installerHeaderIcon": "assets/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Eli6Overlay",
-      "artifactName": "Eli6Overlay-Setup.exe"
+      "artifactName": "Eli6Overlay-Setup.exe",
+      "deleteAppDataOnUninstall": false
     },
     "portable": {
-      "artifactName": "Eli6Overlay-Setup.exe"
+      "artifactName": "Eli6Overlay-Portable.exe"
     }
   }
 }

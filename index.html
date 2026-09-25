@@ -10,125 +10,235 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     TITLE BAR / DRAG REGION
-══════════════════════════════════════════════════════════════════════════════ -->
+<!-- ── TITLEBAR ── -->
 <div id="titlebar">
-  <span id="app-title">Eli6Overlay</span>
-
-  <!-- Language switcher -->
-  <div id="lang-switcher">
-    <button id="btn-en" class="lang-btn active" title="English">EN</button>
-    <span class="lang-sep">|</span>
-    <button id="btn-it" class="lang-btn" title="Italiano">IT</button>
+  <div id="tb-left">
+    <span id="app-name">eli6overlay</span>
+    <span id="status-dot" title="Anti-capture active"></span>
   </div>
-
-  <!-- Window controls -->
-  <div id="win-controls">
-    <button id="btn-settings" class="ctrl-btn" title="Settings">⚙</button>
-    <button id="btn-minimize" class="ctrl-btn" title="Hide overlay">_</button>
-    <button id="btn-close"    class="ctrl-btn close-btn" title="Hide overlay">✕</button>
+  <div id="tb-tabs">
+    <div id="tabs-list"></div>
+    <button id="btn-new-tab" title="New tab (Ctrl+T)">+</button>
+  </div>
+  <div id="tb-right">
+    <div id="lang-switcher">
+      <button id="btn-en" class="lb active">EN</button>
+      <button id="btn-it" class="lb">IT</button>
+    </div>
+    <button id="btn-settings" class="tb-btn" title="Settings">&#9881;</button>
+    <button id="btn-minimize" class="tb-btn" title="Hide (Win+G)">&#8722;</button>
+    <button id="btn-close"    class="tb-btn tb-close" title="Hide">&#10005;</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     TAB BAR
-══════════════════════════════════════════════════════════════════════════════ -->
-<div id="tab-bar">
-  <div id="tabs-list"></div>
-  <button id="btn-new-tab" title="New Tab">+</button>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     NAVIGATION BAR
-══════════════════════════════════════════════════════════════════════════════ -->
+<!-- ── NAV BAR ── -->
 <div id="nav-bar">
-  <button id="btn-back"    class="nav-btn" title="Back">&#8592;</button>
-  <button id="btn-forward" class="nav-btn" title="Forward">&#8594;</button>
-  <button id="btn-refresh" class="nav-btn" title="Refresh">&#8635;</button>
-  <button id="btn-home"    class="nav-btn" title="Home">⌂</button>
-
-  <input id="url-bar" type="text" data-i18n="urlPlaceholder" data-i18n-attr="placeholder"
-         spellcheck="false" autocomplete="off" />
-
-  <button id="btn-mute" class="nav-btn" title="Mute">🔊</button>
-
-  <!-- Quick bookmarks -->
+  <button id="btn-back"    class="nav-btn" title="Back (Alt+←)">&#8592;</button>
+  <button id="btn-forward" class="nav-btn" title="Forward (Alt+→)">&#8594;</button>
+  <button id="btn-refresh" class="nav-btn" title="Refresh (F5)">&#8635;</button>
+  <button id="btn-home"    class="nav-btn" title="Home">&#8962;</button>
+  <input  id="url-bar" type="text" spellcheck="false" autocomplete="off" placeholder="Search or enter URL…" />
+  <button id="btn-mute" class="nav-btn" title="Mute">&#128266;</button>
   <div id="bookmarks-bar">
-    <button class="bm-btn" data-url="https://chatgpt.com"         data-i18n="bmChatGPT">ChatGPT</button>
-    <button class="bm-btn" data-url="https://google.com"          data-i18n="bmGoogle">Google</button>
-    <button class="bm-btn" data-url="https://wikipedia.org"       data-i18n="bmWikipedia">Wikipedia</button>
+    <button class="bm-btn" data-url="https://chatgpt.com">GPT</button>
+    <button class="bm-btn" data-url="https://google.com">G</button>
+    <button class="bm-btn" data-url="https://wikipedia.org">Wiki</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     WEBVIEW CONTAINER  (browser tabs live here as <webview> elements)
-══════════════════════════════════════════════════════════════════════════════ -->
-<div id="webview-container"></div>
+<!-- ── CONTENT ── -->
+<div id="content-area">
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     SCRATCHPAD PANEL  (hidden by default, shown on Scratchpad tab)
-══════════════════════════════════════════════════════════════════════════════ -->
-<div id="scratchpad-panel" class="hidden">
-  <textarea id="scratchpad-text"
-            data-i18n="scratchpadPH" data-i18n-attr="placeholder"
-            spellcheck="true"></textarea>
-  <div id="scratchpad-status"></div>
-</div>
+  <div id="webview-container"></div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     SETTINGS PANEL  (slide-in from right)
-══════════════════════════════════════════════════════════════════════════════ -->
-<div id="settings-panel" class="hidden">
-  <h3 data-i18n="settings">Settings</h3>
-  <button id="settings-close" class="ctrl-btn">✕</button>
-
-  <!-- Opacity -->
-  <div class="setting-row">
-    <label for="opacity-slider" data-i18n="opacity">Opacity</label>
-    <input id="opacity-slider" type="range" min="10" max="100" value="90" step="5" />
-    <span id="opacity-val">90%</span>
+  <div id="scratchpad-panel" class="hidden">
+    <textarea id="scratchpad-text" spellcheck="true" placeholder="Private notes…"></textarea>
+    <div id="scratchpad-status"></div>
   </div>
 
-  <!-- Click-through toggle -->
-  <div class="setting-row">
-    <label data-i18n="clickThrough">Click-Through</label>
-    <button id="btn-click-through" class="toggle-btn" data-state="off"
-            data-i18n="clickThroughOff">OFF — window catches clicks</button>
+  <!-- SETTINGS PANEL -->
+  <div id="settings-panel" class="hidden">
+    <div id="settings-header">
+      <span id="s-title">Settings</span>
+      <button id="settings-close" class="tb-btn">&#10005;</button>
+    </div>
+    <div id="settings-body">
+
+      <div class="s-group">
+        <div class="s-group-label">Appearance</div>
+        <div class="s-row">
+          <label for="opacity-slider">Window opacity</label>
+          <div class="s-right">
+            <input type="range" id="opacity-slider" min="10" max="100" value="100" step="5" />
+            <span id="opacity-val">100%</span>
+          </div>
+        </div>
+        <div class="s-row">
+          <label for="tint-slider">Screen tint</label>
+          <div class="s-right">
+            <input type="range" id="tint-slider" min="0" max="60" value="20" step="5" />
+            <span id="tint-val">20%</span>
+          </div>
+        </div>
+        <div class="s-row">
+          <label for="tint-enabled">Tint enabled</label>
+          <input type="checkbox" id="tint-enabled" checked />
+        </div>
+        <div class="s-row">
+          <label for="zoom-slider">Page zoom</label>
+          <div class="s-right">
+            <input type="range" id="zoom-slider" min="50" max="200" value="100" step="10" />
+            <span id="zoom-val">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-group">
+        <div class="s-group-label">Behaviour</div>
+        <div class="s-row">
+          <label>Click-through</label>
+          <button id="btn-click-through" class="s-toggle" data-on="false">Off</button>
+        </div>
+        <div class="s-row">
+          <label>Pop-out mode</label>
+          <button id="btn-popout" class="s-toggle" data-on="false">Off</button>
+        </div>
+        <div class="s-row">
+          <label for="chk-auto-mute">Auto-mute when hidden</label>
+          <input type="checkbox" id="chk-auto-mute" checked />
+        </div>
+        <div class="s-row">
+          <label for="chk-hide-blank">Hide on empty click</label>
+          <input type="checkbox" id="chk-hide-blank" checked />
+        </div>
+      </div>
+
+      <div class="s-group">
+        <div class="s-group-label">Browser</div>
+        <div class="s-row">
+          <label for="homepage-input">Homepage</label>
+          <input type="text" id="homepage-input" class="s-input" placeholder="https://google.com" />
+        </div>
+        <div class="s-row-col">
+          <label>Custom bookmarks</label>
+          <div id="bookmarks-custom-list"></div>
+          <div class="s-bm-row">
+            <input type="text" id="bm-name-input" class="s-input s-input-sm" placeholder="Name" />
+            <input type="text" id="bm-url-input"  class="s-input s-input-sm" placeholder="https://…" />
+            <button id="btn-bm-add" class="s-btn">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-group">
+        <div class="s-group-label">Position</div>
+        <div class="s-pos-grid">
+          <button class="pos-btn" data-pos="top-left">&#8598;</button>
+          <button class="pos-btn" data-pos="top-center">&#8593;</button>
+          <button class="pos-btn" data-pos="top-right">&#8599;</button>
+          <button class="pos-btn" data-pos="center" style="grid-column:2">&#9679;</button>
+          <button class="pos-btn" data-pos="bottom-left">&#8601;</button>
+          <button class="pos-btn" data-pos="bottom-center">&#8595;</button>
+          <button class="pos-btn" data-pos="bottom-right">&#8600;</button>
+        </div>
+      </div>
+
+      <div class="s-group">
+        <div class="s-group-label">Auto-hide</div>
+        <div class="s-row">
+          <label for="auto-hide-sel">Hide after</label>
+          <select id="auto-hide-sel" class="s-select">
+            <option value="0">Disabled</option>
+            <option value="1">1 min</option>
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="30">30 min</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="s-group">
+        <div class="s-group-label">Lock</div>
+        <div class="s-row">
+          <label for="chk-lock">Require PIN to show</label>
+          <input type="checkbox" id="chk-lock" />
+        </div>
+        <div class="s-row" id="pin-row" style="display:none">
+          <label for="pin-input">PIN</label>
+          <input type="password" id="pin-input" class="s-input s-input-sm" placeholder="Set PIN" maxlength="16" />
+        </div>
+      </div>
+
+      <div class="s-group">
+        <div class="s-group-label">System</div>
+        <div class="s-row">
+          <label for="chk-autostart">Start with Windows</label>
+          <input type="checkbox" id="chk-autostart" />
+        </div>
+        <div class="s-row">
+          <label>Language</label>
+          <div class="s-lang">
+            <button id="s-btn-en" class="s-lang-btn active">EN</button>
+            <button id="s-btn-it" class="s-lang-btn">IT</button>
+          </div>
+        </div>
+        <div class="s-row">
+          <label>Screenshot</label>
+          <button id="btn-screenshot" class="s-btn">Capture</button>
+        </div>
+      </div>
+
+      <div class="s-group">
+        <div class="s-group-label">Hotkeys</div>
+        <div class="s-hotkeys">
+          <div class="hk-row"><span class="hk-a">Show / Hide</span><div class="hk-k"><kbd>Win</kbd><kbd>G</kbd></div></div>
+          <div class="hk-row"><span class="hk-a">Fallback</span><div class="hk-k"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>G</kbd></div></div>
+          <div class="hk-row"><span class="hk-a">Click-through</span><div class="hk-k"><kbd>Win</kbd><kbd>Shift</kbd><kbd>C</kbd></div></div>
+          <div class="hk-row"><span class="hk-a">Panic</span><div class="hk-k"><kbd>Esc</kbd></div></div>
+          <div class="hk-row"><span class="hk-a">New tab</span><div class="hk-k"><kbd>Ctrl</kbd><kbd>T</kbd></div></div>
+          <div class="hk-row"><span class="hk-a">Close tab</span><div class="hk-k"><kbd>Ctrl</kbd><kbd>W</kbd></div></div>
+          <div class="hk-row"><span class="hk-a">URL bar</span><div class="hk-k"><kbd>Ctrl</kbd><kbd>L</kbd></div></div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- Auto-mute -->
-  <div class="setting-row">
-    <label data-i18n="autoMute">Auto-Mute when hidden</label>
-    <input id="chk-auto-mute" type="checkbox" checked />
+  <!-- LOCK PROMPT -->
+  <div id="lock-prompt" class="hidden">
+    <div id="lock-box">
+      <div id="lock-label">Enter PIN</div>
+      <input type="password" id="lock-pin-input" class="s-input" maxlength="16" placeholder="PIN" />
+      <div id="lock-error" class="hidden">Incorrect PIN</div>
+      <div id="lock-actions">
+        <button id="btn-lock-cancel" class="s-btn">Cancel</button>
+        <button id="btn-lock-ok"     class="s-btn s-btn-primary">Unlock</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Hide on blank click -->
-  <div class="setting-row">
-    <label data-i18n="hideOnBlank">Hide on blank click</label>
-    <input id="chk-hide-on-blank" type="checkbox" checked />
-  </div>
+</div><!-- /content-area -->
 
-  <!-- Hotkeys reference -->
-  <div id="hotkeys-section">
-    <h4 data-i18n="hotkeys">Hotkeys</h4>
-    <ul>
-      <li data-i18n="hkToggle">Win+G / Ctrl+Shift+G → Show/Hide</li>
-      <li data-i18n="hkClickThrough">Win+Shift+C → Toggle Click-Through</li>
-      <li data-i18n="hkEscape">Escape → Panic Hide</li>
-    </ul>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     STATUS BAR
-══════════════════════════════════════════════════════════════════════════════ -->
+<!-- ── STATUS BAR ── -->
 <div id="status-bar">
   <span id="status-msg"></span>
-  <span id="click-through-indicator" class="hidden">● CLICK-THROUGH</span>
+  <div id="status-badges">
+    <span id="ct-badge"   class="badge hidden">CLICK-THROUGH</span>
+    <span id="po-badge"   class="badge hidden">POP-OUT</span>
+    <span id="lock-badge" class="badge hidden">LOCKED</span>
+  </div>
 </div>
 
-<!-- Scripts (order matters: i18n must load before renderer) -->
+<!-- ── RESIZE HANDLES ── -->
+<div class="rh rh-n"  data-dir="n"></div>
+<div class="rh rh-s"  data-dir="s"></div>
+<div class="rh rh-e"  data-dir="e"></div>
+<div class="rh rh-w"  data-dir="w"></div>
+<div class="rh rh-ne" data-dir="ne"></div>
+<div class="rh rh-nw" data-dir="nw"></div>
+<div class="rh rh-se" data-dir="se"></div>
+<div class="rh rh-sw" data-dir="sw"></div>
+
 <script src="i18n.js"></script>
 <script src="renderer.js"></script>
 </body>
