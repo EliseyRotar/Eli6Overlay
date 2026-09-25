@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Eli6Overlay</title>
+  <meta name="description" content="Eli6Overlay privacy policy. The app collects no data." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080808; --surface: #111; --border: #1f1f1f; --border2: #2a2a2a;
+      --text: #e2e2e2; --muted: #888; --dim: #444; --cyan: #00e5ff;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    nav { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 6vw; border-bottom: 1px solid var(--border); }
+    .nav-logo { font-size: 15px; font-weight: 700; color: #fff; text-decoration: none; }
+    .nav-logo span { color: var(--cyan); }
+    nav a { color: var(--muted); font-size: 13px; text-decoration: none; }
+    nav a:hover { color: var(--text); }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 64px 6vw 96px; }
+    .back { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; text-decoration: none; margin-bottom: 40px; }
+    .back:hover { color: var(--text); }
+    h1 { font-size: 2rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .meta { font-size: 13px; color: var(--dim); margin-bottom: 48px; }
+    h2 { font-size: 1rem; font-weight: 700; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.1em; margin: 36px 0 10px; }
+    p { color: var(--muted); margin-bottom: 14px; }
+    strong { color: var(--text); font-weight: 600; }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { color: #fff; }
+    .highlight { background: #0f1f22; border: 1px solid rgba(0,229,255,0.15); border-radius: 6px; padding: 16px 20px; margin: 24px 0; }
+    .highlight p { margin-bottom: 0; color: var(--text); }
+    footer { border-top: 1px solid var(--border); padding: 24px 6vw; text-align: center; font-size: 12px; color: var(--dim); }
+    footer a { color: var(--dim); }
+    footer a:hover { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span>eli6</span>overlay</a>
+  <a href="index.html">← Back to home</a>
+</nav>
+
+<div class="wrap">
+  <a href="index.html" class="back">← Back</a>
+
+  <h1>Privacy Policy</h1>
+  <p class="meta">Last updated: September 2026 · Applies to Eli6Overlay desktop application and this website.</p>
+
+  <div class="highlight">
+    <p><strong>Short version:</strong> Eli6Overlay collects absolutely no data. It does not connect to any server. It does not track usage. Everything stays on your machine.</p>
+  </div>
+
+  <h2>1. Data We Collect</h2>
+  <p><strong>None.</strong> Eli6Overlay does not collect, store, transmit, or share any personal data, usage statistics, crash reports, telemetry, analytics, or any other information about you or your usage.</p>
+
+  <h2>2. Network Connections</h2>
+  <p>The Eli6Overlay application itself makes no outbound network connections. The browser tabs inside the overlay connect to whatever URLs you navigate to — those connections are subject to the privacy policies of those websites, not ours.</p>
+
+  <h2>3. Local Storage</h2>
+  <p>Eli6Overlay stores the following data <strong>locally on your device only</strong>, never transmitted anywhere:</p>
+  <p>• Your scratchpad notes (saved to localStorage in the app's Electron partition)<br />
+     • UI preferences: language, opacity, auto-mute setting, hide-on-blank setting</p>
+  <p>This data never leaves your machine and can be cleared by uninstalling the application.</p>
+
+  <h2>4. This Website</h2>
+  <p>This GitHub Pages website (<code>eliseyrotar.github.io/Eli6Overlay</code>) is a static HTML page. It uses Google Fonts for typography, which involves a request to Google's servers. No analytics, tracking scripts, cookies, or third-party services beyond Google Fonts are used.</p>
+
+  <h2>5. Code Signing</h2>
+  <p>Windows release builds are submitted to <a href="https://signpath.org" target="_blank" rel="noopener">SignPath Foundation</a> for code signing. This process involves uploading the compiled executable binary to SignPath's servers for signing. No user data is involved — only the application binary.</p>
+
+  <h2>6. Open Source</h2>
+  <p>Eli6Overlay is fully open source under the MIT License. You can inspect every line of source code at <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">github.com/EliseyRotar/Eli6Overlay</a> to verify these claims.</p>
+
+  <h2>7. Contact</h2>
+  <p>Questions about this policy: <a href="mailto:nutellaelik@gmail.com">nutellaelik@gmail.com</a></p>
+</div>
+
+<footer>
+  <a href="index.html">Eli6Overlay</a> · <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a> · MIT License
+</footer>
+
+</body>
+</html>

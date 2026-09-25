@@ -3,424 +3,842 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Eli6Overlay — Anti-Capture Browser Overlay</title>
-  <meta name="description" content="Eli6Overlay: A stealth transparent browser overlay for Windows with anti-screen-capture technology." />
+  <title>Eli6Overlay — Your browser. Invisible.</title>
+  <meta name="description" content="Eli6Overlay hides your browser from OBS, Discord, Zoom and every screenshot tool on Windows. Free and open source." />
+  <meta property="og:title" content="Eli6Overlay" />
+  <meta property="og:description" content="A transparent, always-on-top browser overlay that screen capture software cannot see." />
+  <meta property="og:url" content="https://eliseyrotar.github.io/Eli6Overlay/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg:      #0d0d0d;
-      --bg2:     #141414;
-      --bg3:     #1e1e1e;
-      --border:  #2a2a2a;
-      --accent:  #00e5ff;
-      --accent2: #007a99;
-      --text:    #c8c8c8;
-      --muted:   #555;
-      --warn:    #ff9800;
-    }
+    /* ── Reset ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #080808;
+      --surface:   #111;
+      --surface2:  #161616;
+      --border:    #1f1f1f;
+      --border2:   #2a2a2a;
+      --text:      #e2e2e2;
+      --muted:     #666;
+      --dim:       #333;
+      --cyan:      #00e5ff;
+      --cyan-dim:  #00b8cc;
+      --cyan-glow: rgba(0, 229, 255, 0.12);
+      --red:       #ff3b3b;
+      --font:      'Inter', system-ui, sans-serif;
+      --mono:      'JetBrains Mono', Consolas, monospace;
+    }
+    html { scroll-behavior: smooth; }
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      font-size: 14px;
+      font-family: var(--font);
+      font-size: 15px;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
-    a { color: var(--accent2); text-decoration: none; }
-    a:hover { color: var(--accent); }
-    code {
-      font-family: Consolas, monospace;
-      font-size: 12px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 1px 4px;
-      color: var(--accent);
-    }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { color: #fff; }
+    ::selection { background: var(--cyan); color: #000; }
 
-    /* Header */
-    header {
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      padding: 0 5vw;
-      height: 52px;
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      padding: 0 6vw;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
     }
-    .logo {
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--accent);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+    .nav-logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
     }
-    .lang-toggle { display: flex; gap: 4px; align-items: center; }
-    .lang-btn {
-      background: transparent;
-      border: 1px solid var(--border);
+    .nav-logo span { color: var(--cyan); }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      align-items: center;
+    }
+    .nav-links a {
       color: var(--muted);
-      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-dl {
+      background: var(--cyan);
+      color: #000 !important;
+      font-weight: 700 !important;
+      font-size: 12px !important;
+      padding: 7px 16px;
+      border-radius: 4px;
+      transition: background 0.15s, transform 0.1s !important;
+    }
+    .nav-dl:hover { background: var(--cyan-dim) !important; color: #000 !important; transform: none; }
+    .lang-pair {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .lb {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font);
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 2px;
-      letter-spacing: 0.08em;
+      padding: 5px 9px;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
     }
-    .lang-btn.active { color: var(--accent); border-color: var(--accent2); }
-    .lang-btn:hover { color: var(--text); border-color: #555; }
-    .lang-sep { color: var(--border); font-size: 13px; }
+    .lb.on { background: var(--surface2); color: var(--cyan); }
+    .lb:hover:not(.on) { color: var(--text); }
 
-    /* Hero */
+    /* ── Hero ── */
     .hero {
-      padding: 72px 5vw 56px;
-      max-width: 860px;
-      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 6vw 80px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Subtle grid background */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.3;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 100%);
+    }
+    /* Cyan glow blob */
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(0,229,255,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 760px; }
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,229,255,0.06);
+      border: 1px solid rgba(0,229,255,0.18);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      margin-bottom: 28px;
+      text-transform: uppercase;
+    }
+    .hero-label::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--cyan);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
     .hero h1 {
-      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-size: clamp(3rem, 7vw, 5.5rem);
       font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--cyan);
+    }
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--muted);
+      max-width: 540px;
+      margin: 0 auto 44px;
+      line-height: 1.65;
+      font-weight: 400;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 500; }
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--cyan);
+      color: #000;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 14px 28px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+      box-shadow: 0 0 24px rgba(0,229,255,0.2);
+    }
+    .btn-primary:hover {
+      background: #fff;
+      color: #000;
+      box-shadow: 0 0 32px rgba(255,255,255,0.15);
+      transform: translateY(-1px);
+    }
+    .btn-primary svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-weight: 500;
+      font-size: 14px;
+      padding: 14px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--muted); color: #fff; }
+    .hero-note {
+      font-size: 11px;
+      color: var(--dim);
+    }
+    .hero-note a { color: var(--dim); text-decoration: underline; text-underline-offset: 2px; }
+    .hero-note a:hover { color: var(--muted); }
+
+    /* ── Proof bar ── */
+    .proof-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 14px 6vw;
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .proof-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .proof-item svg { width: 14px; height: 14px; fill: var(--cyan); flex-shrink: 0; }
+
+    /* ── Sections ── */
+    .wrap { max-width: 900px; margin: 0 auto; padding: 0 6vw; }
+    section { padding: 80px 0; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800;
       color: #fff;
       letter-spacing: -0.02em;
       margin-bottom: 14px;
     }
-    .hero h1 span { color: var(--accent); }
-    .hero .tagline {
+    .section-desc {
       font-size: 15px;
       color: var(--muted);
-      max-width: 580px;
-      margin: 0 auto 28px;
+      max-width: 560px;
       line-height: 1.7;
     }
-    .badges {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 36px;
-    }
-    .badge {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 3px 11px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .badge.hi { border-color: var(--accent2); color: var(--accent); }
 
-    /* Download button */
-    .btn-dl {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--accent);
-      color: #000;
-      font-weight: 800;
-      font-size: 14px;
-      padding: 13px 30px;
-      border-radius: 3px;
-      text-decoration: none;
-      letter-spacing: 0.04em;
-      transition: background 0.12s, transform 0.1s;
-    }
-    .btn-dl:hover { background: #00c8dd; color: #000; transform: translateY(-1px); }
-    .btn-dl svg { width: 18px; height: 18px; fill: #000; flex-shrink: 0; }
-    .dl-sub {
-      display: block;
-      margin-top: 9px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    /* Main sections */
-    main { max-width: 860px; margin: 0 auto; padding: 0 5vw 80px; }
-    section { margin-bottom: 60px; }
-    section h2 {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 9px;
-      margin-bottom: 22px;
-    }
-
-    /* Feature grid */
+    /* ── Features ── */
     .feat-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 48px;
     }
     .feat-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 15px;
+      background: var(--surface);
+      padding: 24px;
+      transition: background 0.15s;
+    }
+    .feat-card:hover { background: var(--surface2); }
+    .feat-icon {
+      font-size: 22px;
+      margin-bottom: 12px;
+      display: block;
     }
     .feat-card h3 {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
-      color: #e0e0e0;
-      margin-bottom: 6px;
+      color: #fff;
+      margin-bottom: 7px;
+      letter-spacing: -0.01em;
     }
-    .feat-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .feat-card p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .feat-card code {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 3px;
+      padding: 1px 4px;
+      color: var(--cyan);
+    }
 
-    /* Keybind table */
-    .kb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .kb-table th {
-      text-align: left;
-      padding: 7px 12px;
-      background: var(--bg3);
+    /* ── How it works ── */
+    .how-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 48px;
+      align-items: start;
+    }
+    @media (max-width: 640px) { .how-grid { grid-template-columns: 1fr; } }
+    .how-text { font-size: 14px; color: var(--muted); line-height: 1.75; }
+    .how-text p { margin-bottom: 16px; }
+    .how-text strong { color: var(--text); font-weight: 600; }
+    .how-text a { color: var(--cyan); }
+    .code-block {
+      background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--accent);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: #aaa;
+      overflow-x: auto;
+    }
+    .code-block .comment { color: #3d3d3d; }
+    .code-block .fn { color: var(--cyan); }
+    .code-block .num { color: #ff9d5c; }
+    .code-block .kw { color: #c084fc; }
+
+    /* ── Keybinds ── */
+    .kb-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 48px;
+    }
+    @media (max-width: 640px) { .kb-grid { grid-template-columns: 1fr; } }
+    .kb-group h4 {
       font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.12em;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
     }
-    .kb-table td {
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      background: var(--bg2);
+    .kb-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
     }
-    .kb-table tr:hover td { background: var(--bg3); }
+    .kb-row:last-child { border-bottom: none; }
+    .kb-action { font-size: 13px; color: var(--muted); flex: 1; min-width: 0; }
+    .kb-keys { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
     kbd {
-      background: var(--bg3);
-      border: 1px solid #3a3a3a;
-      border-radius: 2px;
-      padding: 2px 6px;
-      font-family: Consolas, monospace;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      padding: 3px 7px;
+      font-family: var(--mono);
       font-size: 11px;
-      color: var(--accent);
+      color: var(--text);
       white-space: nowrap;
     }
-    .scope { font-size: 11px; color: var(--muted); }
 
-    /* How it works */
-    .how-text {
-      max-width: 680px;
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.75;
+    /* ── Download section ── */
+    .dl-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
+    .dl-section::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(0,229,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .dl-section h2 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .dl-section p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .dl-section .btn-primary { position: relative; font-size: 15px; padding: 16px 36px; }
+    .dl-meta {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--dim);
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .dl-meta span { display: flex; align-items: center; gap: 5px; }
+    /* SignPath notice — required by SignPath Foundation program */
+    .signpath-notice {
+      margin-top: 28px;
+      padding: 14px 18px;
+      background: rgba(0,229,255,0.04);
+      border: 1px solid rgba(0,229,255,0.12);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      text-align: left;
+      position: relative;
+    }
+    .signpath-notice strong { color: var(--text); }
+    .signpath-notice a { color: var(--cyan); }
 
-    /* Footer */
+    /* ── Footer ── */
     footer {
       border-top: 1px solid var(--border);
-      padding: 22px 5vw;
-      text-align: center;
-      color: var(--muted);
-      font-size: 11px;
+      padding: 32px 6vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-left { font-size: 12px; color: var(--dim); }
+    .footer-left strong { color: var(--muted); }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: 12px; color: var(--dim); transition: color 0.15s; }
+    .footer-links a:hover { color: var(--muted); }
+
+    /* ── Divider ── */
+    hr { border: none; border-top: 1px solid var(--border); }
+
+    /* ── Responsive nav ── */
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <span class="logo">Eli6Overlay</span>
-  <div class="lang-toggle">
-    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
-    <span class="lang-sep">|</span>
-    <button class="lang-btn" id="btn-it" onclick="setLang('it')">IT</button>
+<!-- ── Nav ── -->
+<nav>
+  <span class="nav-logo"><span>eli6</span>overlay</span>
+  <div class="nav-links">
+    <a href="#features" id="nav-feat">Features</a>
+    <a href="#how" id="nav-how">How it works</a>
+    <a href="#hotkeys" id="nav-keys">Hotkeys</a>
+    <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a>
+    <a class="nav-dl" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe" id="nav-dl-btn">Download</a>
   </div>
-</header>
-
-<div class="hero">
-  <h1><span>Eli6</span>Overlay</h1>
-  <p class="tagline" id="tagline">Anti-capture transparent browser overlay for Windows. Hidden from OBS, Discord, Zoom &amp; screenshots — always on top, always invisible.</p>
-
-  <div class="badges">
-    <span class="badge hi">● Anti-Capture</span>
-    <span class="badge">Windows 10 / 11</span>
-    <span class="badge">Electron</span>
-    <span class="badge">Stealth Tray</span>
-    <span class="badge">Multi-Tab</span>
-    <span class="badge">EN | IT</span>
-    <span class="badge">Free &amp; Open Source</span>
+  <div class="lang-pair">
+    <button class="lb on" id="lb-en" onclick="setLang('en')">EN</button>
+    <button class="lb" id="lb-it" onclick="setLang('it')">IT</button>
   </div>
+</nav>
 
-  <a class="btn-dl"
-     href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe"
-     id="dl-btn">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 16l-5-5 1.4-1.4 2.6 2.6V4h2v8.2l2.6-2.6L17 11l-5 5zm-7 2h14v2H5v-2z"/>
-    </svg>
-    <span id="dl-label">Download for Windows</span>
-  </a>
-  <span class="dl-sub" id="dl-sub">Free · v1.0.0 · Windows Installer (.exe)</span>
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-label" id="h-label">Screen capture protection · Windows 10/11</div>
+    <h1 id="h-title">Your browser.<br><em>Invisible.</em></h1>
+    <p class="hero-sub" id="h-sub">
+      Eli6Overlay is a <strong>transparent, always-on-top browser</strong> that screen recording software cannot see.
+      OBS, Discord, Zoom, Teams, and Windows screenshots all show nothing where the overlay is.
+    </p>
+    <div class="hero-cta">
+      <a class="btn-primary" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe" id="h-dl">
+        <svg viewBox="0 0 24 24"><path d="M12 16l-5-5 1.4-1.4 2.6 2.6V4h2v8.2l2.6-2.6L17 11l-5 5zm-7 2h14v2H5v-2z"/></svg>
+        <span id="h-dl-text">Download for Windows</span>
+      </a>
+      <a class="btn-ghost" href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View Source
+      </a>
+    </div>
+    <p class="hero-note" id="h-note">
+      Free &amp; open source · MIT License ·
+      <a href="#download" id="h-smartscreen">SmartScreen warning?</a>
+    </p>
+  </div>
+</section>
+
+<!-- ── Proof bar ── -->
+<div class="proof-bar">
+  <div class="proof-item">
+    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+    <span id="pb1">Invisible to OBS, Discord, Zoom</span>
+  </div>
+  <div class="proof-item">
+    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+    <span id="pb2">No Taskbar. No Alt+Tab.</span>
+  </div>
+  <div class="proof-item">
+    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <span id="pb3">Free · Open source · MIT</span>
+  </div>
+  <div class="proof-item">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+    <span id="pb4">Windows 10 / 11</span>
+  </div>
 </div>
 
-<main>
-
-  <!-- Features -->
-  <section>
-    <h2 id="feat-title">Features</h2>
+<!-- ── Features ── -->
+<section id="features">
+  <div class="wrap">
+    <div class="section-label" id="feat-label">What it does</div>
+    <h2 class="section-title" id="feat-title">Everything you need. Nothing you don't.</h2>
+    <p class="section-desc" id="feat-desc">A browser overlay built for one job: stay invisible. No bloat, no subscriptions, no tracking.</p>
     <div class="feat-grid">
       <div class="feat-card">
-        <h3>🛡 Anti-Capture</h3>
-        <p id="f1">Uses <code>SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)</code> via Electron's <code>setContentProtection(true)</code>. Invisible to OBS, Discord screen share, Zoom, Teams, and PrintScreen.</p>
+        <span class="feat-icon">🛡</span>
+        <h3 id="f1h">Anti-Capture</h3>
+        <p id="f1p">Uses <code>SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)</code> — the same Windows API used by Netflix DRM. The overlay is physically rendered on your monitor but completely absent from any recording or capture.</p>
       </div>
       <div class="feat-card">
-        <h3>👻 Skip Taskbar</h3>
-        <p id="f2">Never appears in the Windows Taskbar or Alt+Tab switcher. Accessible only via the system tray icon.</p>
+        <span class="feat-icon">👻</span>
+        <h3 id="f2h">Zero Taskbar Presence</h3>
+        <p id="f2p">The window never appears in the taskbar or Alt+Tab switcher. The only way to access it is via the system tray icon or the global hotkey.</p>
       </div>
       <div class="feat-card">
-        <h3>💾 Soft Close</h3>
-        <p id="f3">The window hides instead of closing. All tabs, sessions, and form state persist in memory until you quit from the tray.</p>
+        <span class="feat-icon">💾</span>
+        <h3 id="f3h">Soft Close</h3>
+        <p id="f3p">Closing or hiding the window preserves every open tab, loaded page, login session, and form field in memory. Nothing is lost until you explicitly quit from the tray.</p>
       </div>
       <div class="feat-card">
-        <h3>🖱 Click-Through Mode</h3>
-        <p id="f4">Win+Shift+C makes the overlay fully transparent to mouse input — clicks pass through to apps underneath.</p>
+        <span class="feat-icon">🚨</span>
+        <h3 id="f4h">Panic Key</h3>
+        <p id="f4p">Press <kbd>Escape</kbd> to vanish in under 100ms — the overlay hides, audio mutes, and every tab navigates to <code>about:blank</code>. No trace left on screen.</p>
       </div>
       <div class="feat-card">
-        <h3>🔇 Auto-Mute</h3>
-        <p id="f5">Audio mutes automatically on hide and restores on show. Works across all open tabs.</p>
+        <span class="feat-icon">🖱</span>
+        <h3 id="f5h">Click-Through Mode</h3>
+        <p id="f5p">Toggle with <kbd>Win+Shift+C</kbd>. In click-through mode the overlay is still visible to you but mouse clicks pass directly to applications underneath it.</p>
       </div>
       <div class="feat-card">
-        <h3>🚨 Panic Key</h3>
-        <p id="f6">Press Escape to instantly hide the overlay, mute all audio, and navigate every tab to about:blank.</p>
+        <span class="feat-icon">🔇</span>
+        <h3 id="f6h">Auto-Mute on Hide</h3>
+        <p id="f6p">Audio mutes the moment the overlay is hidden and restores when you bring it back. Works across all tabs simultaneously.</p>
       </div>
       <div class="feat-card">
-        <h3>🌐 Multi-Tab Browser</h3>
-        <p id="f7">Full browser with tabs, URL/search bar, back/forward/refresh, and quick bookmarks: ChatGPT, Google, Wikipedia.</p>
+        <span class="feat-icon">🌐</span>
+        <h3 id="f7h">Full Browser</h3>
+        <p id="f7p">Multi-tab browser with URL bar, smart search, back/forward/refresh, and one-click bookmarks for ChatGPT, Google, and Wikipedia.</p>
       </div>
       <div class="feat-card">
-        <h3>📝 Offline Scratchpad</h3>
-        <p id="f8">Private notes tab with auto-save to localStorage. Survives app restarts.</p>
+        <span class="feat-icon">📝</span>
+        <h3 id="f8h">Private Scratchpad</h3>
+        <p id="f8p">A dedicated offline notes tab that auto-saves to localStorage. Completely private — never leaves your machine.</p>
       </div>
       <div class="feat-card">
-        <h3>🌍 EN / IT Bilingual</h3>
-        <p id="f9">Complete English and Italian UI. All labels, tooltips, and menus switch instantly.</p>
+        <span class="feat-icon">⚙️</span>
+        <h3 id="f9h">Opacity &amp; Language</h3>
+        <p id="f9p">Slide opacity from 10% to 100%. Switch the entire UI between English and Italian instantly — no restart needed.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Keybinds -->
-  <section>
-    <h2 id="kb-title">Keybind Cheat Sheet</h2>
-    <table class="kb-table">
-      <thead>
-        <tr>
-          <th id="th1">Shortcut</th>
-          <th id="th2">Action</th>
-          <th id="th3">Scope</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><kbd>Win+G</kbd> / <kbd>Ctrl+Shift+G</kbd></td><td id="kb1">Toggle overlay visibility</td><td class="scope" id="sc1">Global</td></tr>
-        <tr><td><kbd>Win+Shift+C</kbd></td><td id="kb2">Toggle click-through mode</td><td class="scope" id="sc2">Global</td></tr>
-        <tr><td><kbd>Escape</kbd></td><td id="kb3">Panic hide — hides, mutes, clears tabs</td><td class="scope" id="sc3">In-app</td></tr>
-        <tr><td><kbd>Ctrl+T</kbd></td><td id="kb4">New browser tab</td><td class="scope" id="sc4">In-app</td></tr>
-        <tr><td><kbd>Ctrl+W</kbd></td><td id="kb5">Close current tab</td><td class="scope" id="sc5">In-app</td></tr>
-        <tr><td><kbd>Ctrl+L</kbd></td><td id="kb6">Focus URL bar</td><td class="scope" id="sc6">In-app</td></tr>
-        <tr><td><kbd>Ctrl+1</kbd>–<kbd>9</kbd></td><td id="kb7">Switch to tab by number</td><td class="scope" id="sc7">In-app</td></tr>
-        <tr><td><kbd>F5</kbd></td><td id="kb8">Refresh active tab</td><td class="scope" id="sc8">In-app</td></tr>
-        <tr><td><kbd>Alt+←</kbd> / <kbd>Alt+→</kbd></td><td id="kb9">Back / Forward</td><td class="scope" id="sc9">In-app</td></tr>
-      </tbody>
-    </table>
-  </section>
+<hr />
 
-  <!-- How it works -->
-  <section>
-    <h2 id="how-title">How It Works</h2>
-    <p class="how-text" id="how-body">
-      Eli6Overlay calls <code>win.setContentProtection(true)</code> in Electron, which internally invokes the Windows API
-      <code>SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)</code> — the same mechanism used by Netflix DRM,
-      documented on <a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity" target="_blank" rel="noopener">Microsoft Docs</a>.
-      The window renders normally on your physical monitor but appears black or entirely absent in any screen recording, capture tool, or remote viewer (OBS, Discord, Zoom, Teams, Win+PrintScreen).
-    </p>
-  </section>
+<!-- ── How it works ── -->
+<section id="how">
+  <div class="wrap">
+    <div class="section-label" id="how-label">Under the hood</div>
+    <h2 class="section-title" id="how-title">The same API Netflix uses.</h2>
+    <div class="how-grid">
+      <div class="how-text" id="how-body">
+        <p>When Eli6Overlay starts, it calls <strong>win.setContentProtection(true)</strong> in Electron. On Windows this maps directly to the Win32 API call:</p>
+        <p><strong>SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)</strong></p>
+        <p>This instructs the Desktop Window Manager to exclude the window's pixels from any capture path — BitBlt, DWM frame capture, GPU-based OBS capture, PrintScreen, Win+Shift+S, remote desktop, all of it.</p>
+        <p>The same flag is used by Netflix, Disney+, banking apps, and Windows Hello to prevent screen recording of protected content. It is a documented, officially supported Windows API — not a hack.</p>
+        <p><a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity" target="_blank" rel="noopener">Microsoft Docs →</a></p>
+      </div>
+      <div>
+        <div class="code-block">
+<span class="comment">// Electron main process</span>
+<span class="kw">const</span> win = <span class="kw">new</span> <span class="fn">BrowserWindow</span>({
+  frame: <span class="fn">false</span>,
+  transparent: <span class="fn">true</span>,
+  alwaysOnTop: <span class="fn">true</span>,
+  skipTaskbar: <span class="fn">true</span>,
+});
 
-</main>
+<span class="comment">// Calls SetWindowDisplayAffinity</span>
+<span class="comment">// with WDA_EXCLUDEFROMCAPTURE (0x11)</span>
+win.<span class="fn">setContentProtection</span>(<span class="fn">true</span>);
 
+<span class="comment">// Hide instead of close</span>
+win.<span class="fn">on</span>(<span class="fn">'close'</span>, (e) => {
+  e.<span class="fn">preventDefault</span>();
+  win.<span class="fn">hide</span>();
+});
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr />
+
+<!-- ── Hotkeys ── -->
+<section id="hotkeys">
+  <div class="wrap">
+    <div class="section-label" id="kb-label">Keyboard shortcuts</div>
+    <h2 class="section-title" id="kb-title">Control everything without touching the mouse.</h2>
+    <div class="kb-grid">
+      <div class="kb-group">
+        <h4 id="kb-global">Global — work while overlay is hidden</h4>
+        <div class="kb-row">
+          <span class="kb-action" id="kb1">Show / Hide overlay</span>
+          <div class="kb-keys"><kbd>Win</kbd><kbd>G</kbd></div>
+        </div>
+        <div class="kb-row">
+          <span class="kb-action" id="kb2">Show / Hide (fallback)</span>
+          <div class="kb-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>G</kbd></div>
+        </div>
+        <div class="kb-row">
+          <span class="kb-action" id="kb3">Toggle click-through</span>
+          <div class="kb-keys"><kbd>Win</kbd><kbd>Shift</kbd><kbd>C</kbd></div>
+        </div>
+      </div>
+      <div class="kb-group">
+        <h4 id="kb-inapp">In-app shortcuts</h4>
+        <div class="kb-row">
+          <span class="kb-action" id="kb4">Panic hide</span>
+          <div class="kb-keys"><kbd>Esc</kbd></div>
+        </div>
+        <div class="kb-row">
+          <span class="kb-action" id="kb5">New tab</span>
+          <div class="kb-keys"><kbd>Ctrl</kbd><kbd>T</kbd></div>
+        </div>
+        <div class="kb-row">
+          <span class="kb-action" id="kb6">Close tab</span>
+          <div class="kb-keys"><kbd>Ctrl</kbd><kbd>W</kbd></div>
+        </div>
+        <div class="kb-row">
+          <span class="kb-action" id="kb7">Focus URL bar</span>
+          <div class="kb-keys"><kbd>Ctrl</kbd><kbd>L</kbd></div>
+        </div>
+        <div class="kb-row">
+          <span class="kb-action" id="kb8">Switch tab</span>
+          <div class="kb-keys"><kbd>Ctrl</kbd><kbd>1–9</kbd></div>
+        </div>
+        <div class="kb-row">
+          <span class="kb-action" id="kb9">Back / Forward</span>
+          <div class="kb-keys"><kbd>Alt</kbd><kbd>← →</kbd></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr />
+
+<!-- ── Download ── -->
+<section id="download">
+  <div class="wrap">
+    <div class="dl-section">
+      <h2 id="dl-title">Download Eli6Overlay</h2>
+      <p id="dl-sub">Windows 10 (build 1903+) or Windows 11, 64-bit. No install wizard, just run and go.</p>
+      <a class="btn-primary" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe" id="dl-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 16l-5-5 1.4-1.4 2.6 2.6V4h2v8.2l2.6-2.6L17 11l-5 5zm-7 2h14v2H5v-2z"/></svg>
+        <span id="dl-btn-text">Eli6Overlay-Setup.exe</span>
+      </a>
+      <div class="dl-meta">
+        <span>✓ <span id="dl-free">Free forever</span></span>
+        <span>✓ <span id="dl-os">MIT License</span></span>
+        <span>✓ <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener" id="dl-src">Open source</a></span>
+        <span>✓ <span id="dl-telem">No telemetry</span></span>
+      </div>
+
+      <!-- SignPath signing notice — required by SignPath Foundation program -->
+      <div class="signpath-notice" id="sp-notice">
+        <strong>🔐 Code Signing:</strong>
+        This project uses the <a href="https://signpath.org" target="_blank" rel="noopener">SignPath Foundation</a>
+        for free, trusted code signing of Windows executables. Signed releases carry a certificate issued under
+        SignPath Foundation's trusted root. If Windows SmartScreen shows a warning on the current release,
+        click <strong>"More info" → "Run anyway"</strong> — signing approval is in progress and signed builds
+        will be published once approved. All source code is publicly auditable on
+        <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
 <footer>
-  <p>
-    <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank">GitHub</a> ·
-    <a href="https://github.com/EliseyRotar/Eli6Overlay/releases" target="_blank">Releases</a> ·
-    MIT License · Built by <strong style="color:#aaa">EliseyRotar</strong>
-  </p>
+  <div class="footer-left">
+    Built by <strong>eli6</strong> · MIT License · 2026
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/EliseyRotar/Eli6Overlay/releases" target="_blank" rel="noopener" id="fl-rel">Releases</a>
+    <a href="https://github.com/EliseyRotar/Eli6Overlay/issues" target="_blank" rel="noopener" id="fl-issues">Issues</a>
+    <a href="privacy.html" id="fl-priv">Privacy</a>
+    <a href="https://github.com/EliseyRotar/Eli6Overlay/blob/master/CODESIGNING.md" target="_blank" rel="noopener" id="fl-sign">Code Signing</a>
+  </div>
 </footer>
 
 <script>
-const S = {
+/* ── i18n ── */
+const T = {
   en: {
-    tagline: "Anti-capture transparent browser overlay for Windows. Hidden from OBS, Discord, Zoom & screenshots — always on top, always invisible.",
-    dlLabel: "Download for Windows",
-    dlSub:   "Free · v1.0.0 · Windows Installer (.exe)",
-    featTitle: "Features",
-    kbTitle:   "Keybind Cheat Sheet",
-    howTitle:  "How It Works",
-    th1:"Shortcut", th2:"Action", th3:"Scope",
-    f1:"Uses <code>SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)</code> via Electron's <code>setContentProtection(true)</code>. Invisible to OBS, Discord screen share, Zoom, Teams, and PrintScreen.",
-    f2:"Never appears in the Windows Taskbar or Alt+Tab switcher. Accessible only via the system tray icon.",
-    f3:"The window hides instead of closing. All tabs, sessions, and form state persist in memory until you quit from the tray.",
-    f4:"Win+Shift+C makes the overlay fully transparent to mouse input — clicks pass through to apps underneath.",
-    f5:"Audio mutes automatically on hide and restores on show. Works across all open tabs.",
-    f6:"Press Escape to instantly hide the overlay, mute all audio, and navigate every tab to about:blank.",
-    f7:"Full browser with tabs, URL/search bar, back/forward/refresh, and quick bookmarks: ChatGPT, Google, Wikipedia.",
-    f8:"Private notes tab with auto-save to localStorage. Survives app restarts.",
-    f9:"Complete English and Italian UI. All labels, tooltips, and menus switch instantly.",
-    kb1:"Toggle overlay visibility", sc1:"Global",
-    kb2:"Toggle click-through mode", sc2:"Global",
-    kb3:"Panic hide — hides, mutes, clears tabs", sc3:"In-app",
-    kb4:"New browser tab", sc4:"In-app",
-    kb5:"Close current tab", sc5:"In-app",
-    kb6:"Focus URL bar", sc6:"In-app",
-    kb7:"Switch to tab by number", sc7:"In-app",
-    kb8:"Refresh active tab", sc8:"In-app",
-    kb9:"Back / Forward", sc9:"In-app",
-    howBody:`Eli6Overlay calls <code>win.setContentProtection(true)</code> in Electron, which internally invokes the Windows API <code>SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)</code> — the same mechanism used by Netflix DRM, documented on <a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity" target="_blank" rel="noopener">Microsoft Docs</a>. The window renders normally on your physical monitor but appears black or entirely absent in any screen recording, capture tool, or remote viewer.`
+    hLabel: 'Screen capture protection · Windows 10/11',
+    hTitle: 'Your browser.<br><em>Invisible.</em>',
+    hSub: 'Eli6Overlay is a <strong>transparent, always-on-top browser</strong> that screen recording software cannot see. OBS, Discord, Zoom, Teams, and Windows screenshots all show nothing where the overlay is.',
+    hDlText: 'Download for Windows',
+    hNote: 'Free &amp; open source · MIT License · <a href="#download" id="h-smartscreen">SmartScreen warning?</a>',
+    navFeat:'Features', navHow:'How it works', navKeys:'Hotkeys',
+    pb1:'Invisible to OBS, Discord, Zoom', pb2:'No Taskbar. No Alt+Tab.', pb3:'Free · Open source · MIT', pb4:'Windows 10 / 11',
+    featLabel:'What it does', featTitle:'Everything you need. Nothing you don\'t.', featDesc:'A browser overlay built for one job: stay invisible. No bloat, no subscriptions, no tracking.',
+    f1h:'Anti-Capture', f1p:'Uses <code>SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)</code> — the same Windows API used by Netflix DRM. The overlay is physically rendered on your monitor but completely absent from any recording or capture.',
+    f2h:'Zero Taskbar Presence', f2p:'The window never appears in the taskbar or Alt+Tab switcher. The only way to access it is via the system tray icon or the global hotkey.',
+    f3h:'Soft Close', f3p:'Closing or hiding the window preserves every open tab, loaded page, login session, and form field in memory. Nothing is lost until you explicitly quit from the tray.',
+    f4h:'Panic Key', f4p:'Press <kbd>Escape</kbd> to vanish in under 100ms — the overlay hides, audio mutes, and every tab navigates to <code>about:blank</code>. No trace left on screen.',
+    f5h:'Click-Through Mode', f5p:'Toggle with <kbd>Win+Shift+C</kbd>. In click-through mode the overlay is still visible to you but mouse clicks pass directly to applications underneath it.',
+    f6h:'Auto-Mute on Hide', f6p:'Audio mutes the moment the overlay is hidden and restores when you bring it back. Works across all tabs simultaneously.',
+    f7h:'Full Browser', f7p:'Multi-tab browser with URL bar, smart search, back/forward/refresh, and one-click bookmarks for ChatGPT, Google, and Wikipedia.',
+    f8h:'Private Scratchpad', f8p:'A dedicated offline notes tab that auto-saves to localStorage. Completely private — never leaves your machine.',
+    f9h:'Opacity &amp; Language', f9p:'Slide opacity from 10% to 100%. Switch the entire UI between English and Italian instantly — no restart needed.',
+    howLabel:'Under the hood', howTitle:'The same API Netflix uses.',
+    howBody:'<p>When Eli6Overlay starts, it calls <strong>win.setContentProtection(true)</strong> in Electron. On Windows this maps directly to the Win32 API call:</p><p><strong>SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)</strong></p><p>This instructs the Desktop Window Manager to exclude the window\'s pixels from any capture path — BitBlt, DWM frame capture, GPU-based OBS capture, PrintScreen, Win+Shift+S, remote desktop, all of it.</p><p>The same flag is used by Netflix, Disney+, banking apps, and Windows Hello to prevent screen recording of protected content. It is a documented, officially supported Windows API — not a hack.</p><p><a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity" target="_blank" rel="noopener">Microsoft Docs →</a></p>',
+    kbLabel:'Keyboard shortcuts', kbTitle:'Control everything without touching the mouse.',
+    kbGlobal:'Global — work while overlay is hidden', kbInapp:'In-app shortcuts',
+    kb1:'Show / Hide overlay', kb2:'Show / Hide (fallback)', kb3:'Toggle click-through',
+    kb4:'Panic hide', kb5:'New tab', kb6:'Close tab', kb7:'Focus URL bar', kb8:'Switch tab', kb9:'Back / Forward',
+    dlTitle:'Download Eli6Overlay', dlSub:'Windows 10 (build 1903+) or Windows 11, 64-bit. No install wizard, just run and go.',
+    dlBtnText:'Eli6Overlay-Setup.exe', dlFree:'Free forever', dlOs:'MIT License', dlSrc:'Open source', dlTelem:'No telemetry',
+    spNotice:'<strong>🔐 Code Signing:</strong> This project uses the <a href="https://signpath.org" target="_blank" rel="noopener">SignPath Foundation</a> for free, trusted code signing of Windows executables. If Windows SmartScreen shows a warning, click <strong>"More info" → "Run anyway"</strong> — signing approval is in progress. All source code is publicly auditable on <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a>.',
+    flRel:'Releases', flIssues:'Issues', flPriv:'Privacy', flSign:'Code Signing',
   },
   it: {
-    tagline: "Overlay browser trasparente anti-cattura per Windows. Invisibile per OBS, Discord, Zoom e screenshot — sempre in primo piano, sempre nascosto.",
-    dlLabel: "Scarica per Windows",
-    dlSub:   "Gratuito · v1.0.0 · Installer Windows (.exe)",
-    featTitle: "Funzionalità",
-    kbTitle:   "Scorciatoie da Tastiera",
-    howTitle:  "Come Funziona",
-    th1:"Scorciatoia", th2:"Azione", th3:"Ambito",
-    f1:"Usa <code>SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)</code> tramite <code>setContentProtection(true)</code>. Invisibile a OBS, condivisione Discord, Zoom, Teams e Screenshot.",
-    f2:"Non appare mai nella barra delle applicazioni o nel menu Alt+Tab. Accessibile solo tramite l'icona nella tray di sistema.",
-    f3:"La finestra si nasconde invece di chiudersi. Schede, sessioni e dati dei form rimangono in memoria.",
-    f4:"Win+Shift+C rende l'overlay completamente trasparente all'input del mouse — i clic passano alle app sottostanti.",
-    f5:"L'audio si azzera automaticamente nascondendo l'overlay e si ripristina alla riapertura. Funziona su tutte le schede.",
-    f6:"Premi Escape per nascondere immediatamente l'overlay, silenziare tutto l'audio e navigare tutte le schede verso about:blank.",
-    f7:"Browser completo con schede, barra URL/ricerca, indietro/avanti/ricarica e segnalibri rapidi: ChatGPT, Google, Wikipedia.",
-    f8:"Scheda note private con salvataggio automatico su localStorage. Sopravvive al riavvio dell'app.",
-    f9:"Interfaccia completamente bilingue. Tutte le etichette, tooltip e menu cambiano istantaneamente.",
-    kb1:"Attiva/disattiva visibilità overlay", sc1:"Globale",
-    kb2:"Attiva/disattiva modalità click-through", sc2:"Globale",
-    kb3:"Nascondi di emergenza — nasconde, muto, pulisce schede", sc3:"In-app",
-    kb4:"Nuova scheda browser", sc4:"In-app",
-    kb5:"Chiudi scheda corrente", sc5:"In-app",
-    kb6:"Metti a fuoco la barra URL", sc6:"In-app",
-    kb7:"Passa alla scheda per numero", sc7:"In-app",
-    kb8:"Ricarica scheda attiva", sc8:"In-app",
-    kb9:"Indietro / Avanti", sc9:"In-app",
-    howBody:`Eli6Overlay chiama <code>win.setContentProtection(true)</code> in Electron, che internamente invoca la Windows API <code>SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)</code> — lo stesso meccanismo usato dal DRM di Netflix, documentato su <a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity" target="_blank" rel="noopener">Microsoft Docs</a>. La finestra si vede normalmente sul monitor fisico ma appare nera o assente in qualsiasi registrazione, cattura schermo o visualizzatore remoto.`
+    hLabel: 'Protezione da cattura schermo · Windows 10/11',
+    hTitle: 'Il tuo browser.<br><em>Invisibile.</em>',
+    hSub: 'Eli6Overlay è un <strong>browser trasparente, sempre in primo piano</strong> che i software di registrazione schermo non riescono a vedere. OBS, Discord, Zoom, Teams e gli screenshot di Windows non mostrano nulla dov\'è l\'overlay.',
+    hDlText: 'Scarica per Windows',
+    hNote: 'Gratuito e open source · Licenza MIT · <a href="#download" id="h-smartscreen">Avviso SmartScreen?</a>',
+    navFeat:'Funzionalità', navHow:'Come funziona', navKeys:'Scorciatoie',
+    pb1:'Invisibile a OBS, Discord, Zoom', pb2:'Niente Taskbar. Niente Alt+Tab.', pb3:'Gratuito · Open source · MIT', pb4:'Windows 10 / 11',
+    featLabel:'Cosa fa', featTitle:'Tutto quello che serve. Niente di superfluo.', featDesc:'Un overlay browser costruito per un solo scopo: restare invisibile. Niente bloatware, niente abbonamenti, niente tracking.',
+    f1h:'Anti-Cattura', f1p:'Usa <code>SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)</code> — la stessa Windows API usata dal DRM di Netflix. L\'overlay è fisicamente visualizzato sul tuo monitor ma completamente assente da qualsiasi registrazione o cattura.',
+    f2h:'Nessuna presenza nella Taskbar', f2p:'La finestra non appare mai nella barra delle applicazioni o nel menu Alt+Tab. L\'unico modo per accedervi è tramite l\'icona nella tray di sistema o il tasto rapido globale.',
+    f3h:'Chiusura Soft', f3p:'Chiudere o nascondere la finestra preserva ogni scheda aperta, pagina caricata, sessione di accesso e campo del modulo in memoria. Nulla va perso finché non esci esplicitamente dalla tray.',
+    f4h:'Tasto Panico', f4p:'Premi <kbd>Escape</kbd> per sparire in meno di 100ms — l\'overlay si nasconde, l\'audio si azzera e ogni scheda naviga verso <code>about:blank</code>. Nessuna traccia sullo schermo.',
+    f5h:'Modalità Click-Through', f5p:'Attiva con <kbd>Win+Shift+C</kbd>. In modalità click-through l\'overlay è ancora visibile a te ma i clic del mouse passano direttamente alle applicazioni sottostanti.',
+    f6h:'Muto Automatico', f6p:'L\'audio si azzera nel momento in cui l\'overlay viene nascosto e si ripristina quando lo riporti. Funziona su tutte le schede contemporaneamente.',
+    f7h:'Browser Completo', f7p:'Browser multi-scheda con barra URL, ricerca intelligente, indietro/avanti/ricarica e segnalibri rapidi per ChatGPT, Google e Wikipedia.',
+    f8h:'Note Private', f8p:'Una scheda note offline dedicata con salvataggio automatico su localStorage. Completamente privata — non lascia mai il tuo dispositivo.',
+    f9h:'Opacità e Lingua', f9p:'Regola l\'opacità dal 10% al 100%. Passa l\'intera interfaccia tra inglese e italiano istantaneamente — nessun riavvio necessario.',
+    howLabel:'Sotto il cofano', howTitle:'La stessa API usata da Netflix.',
+    howBody:'<p>Quando Eli6Overlay si avvia, chiama <strong>win.setContentProtection(true)</strong> in Electron. Su Windows questo corrisponde direttamente alla chiamata Win32 API:</p><p><strong>SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)</strong></p><p>Questo dice al Desktop Window Manager di escludere i pixel della finestra da qualsiasi percorso di cattura — BitBlt, DWM frame capture, cattura OBS basata su GPU, PrintScreen, Win+Shift+S, desktop remoto, tutto.</p><p>Lo stesso flag è usato da Netflix, Disney+, app bancarie e Windows Hello per impedire la registrazione di contenuti protetti. È una Windows API documentata e ufficialmente supportata — non un hack.</p><p><a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowdisplayaffinity" target="_blank" rel="noopener">Microsoft Docs →</a></p>',
+    kbLabel:'Scorciatoie da tastiera', kbTitle:'Controlla tutto senza toccare il mouse.',
+    kbGlobal:'Globali — funzionano anche quando l\'overlay è nascosto', kbInapp:'Scorciatoie in-app',
+    kb1:'Mostra / Nascondi overlay', kb2:'Mostra / Nascondi (alternativa)', kb3:'Attiva/disattiva click-through',
+    kb4:'Nascondi di emergenza', kb5:'Nuova scheda', kb6:'Chiudi scheda', kb7:'Metti a fuoco URL', kb8:'Cambia scheda', kb9:'Indietro / Avanti',
+    dlTitle:'Scarica Eli6Overlay', dlSub:'Windows 10 (build 1903+) o Windows 11, 64-bit. Nessun wizard di installazione, esegui e basta.',
+    dlBtnText:'Eli6Overlay-Setup.exe', dlFree:'Gratuito per sempre', dlOs:'Licenza MIT', dlSrc:'Open source', dlTelem:'Nessun telemetria',
+    spNotice:'<strong>🔐 Firma del Codice:</strong> Questo progetto usa <a href="https://signpath.org" target="_blank" rel="noopener">SignPath Foundation</a> per la firma gratuita e affidabile degli eseguibili Windows. Se Windows SmartScreen mostra un avviso, clicca <strong>"Altre informazioni" → "Esegui comunque"</strong> — l\'approvazione della firma è in corso. Tutto il codice sorgente è pubblicamente verificabile su <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a>.',
+    flRel:'Release', flIssues:'Segnalazioni', flPriv:'Privacy', flSign:'Firma codice',
   }
 };
 
 function setLang(lang) {
-  if (!S[lang]) return;
-  const s = S[lang];
-  const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  if (!T[lang]) return;
+  const s = T[lang];
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v; };
   document.documentElement.lang = lang;
-  document.getElementById('btn-en').classList.toggle('active', lang==='en');
-  document.getElementById('btn-it').classList.toggle('active', lang==='it');
-  set('tagline', s.tagline); set('dl-label', s.dlLabel); set('dl-sub', s.dlSub);
-  set('feat-title', s.featTitle); set('kb-title', s.kbTitle); set('how-title', s.howTitle);
-  set('th1', s.th1); set('th2', s.th2); set('th3', s.th3);
-  for (let i=1; i<=9; i++) { set('f'+i, s['f'+i]); set('kb'+i, s['kb'+i]); set('sc'+i, s['sc'+i]); }
-  set('how-body', s.howBody);
-  try { localStorage.setItem('eli6_docs_lang', lang); } catch(_) {}
+  document.getElementById('lb-en').classList.toggle('on', lang === 'en');
+  document.getElementById('lb-it').classList.toggle('on', lang === 'it');
+  set('h-label', s.hLabel); set('h-title', s.hTitle); set('h-sub', s.hSub);
+  set('h-dl-text', s.hDlText); set('h-note', s.hNote);
+  set('nav-feat', s.navFeat); set('nav-how', s.navHow); set('nav-keys', s.navKeys);
+  set('pb1', s.pb1); set('pb2', s.pb2); set('pb3', s.pb3); set('pb4', s.pb4);
+  set('feat-label', s.featLabel); set('feat-title', s.featTitle); set('feat-desc', s.featDesc);
+  for (let i=1;i<=9;i++) { set('f'+i+'h', s['f'+i+'h']); set('f'+i+'p', s['f'+i+'p']); }
+  set('how-label', s.howLabel); set('how-title', s.howTitle); set('how-body', s.howBody);
+  set('kb-label', s.kbLabel); set('kb-title', s.kbTitle);
+  set('kb-global', s.kbGlobal); set('kb-inapp', s.kbInapp);
+  for (let i=1;i<=9;i++) set('kb'+i, s['kb'+i]);
+  set('dl-title', s.dlTitle); set('dl-sub', s.dlSub);
+  set('dl-btn-text', s.dlBtnText); set('dl-free', s.dlFree);
+  set('dl-os', s.dlOs); set('dl-src', s.dlSrc); set('dl-telem', s.dlTelem);
+  set('sp-notice', s.spNotice);
+  set('fl-rel', s.flRel); set('fl-issues', s.flIssues); set('fl-priv', s.flPriv); set('fl-sign', s.flSign);
+  try { localStorage.setItem('eli6_lang', lang); } catch(_) {}
 }
 
-(function(){ try { const l=localStorage.getItem('eli6_docs_lang'); if(l) setLang(l); } catch(_){} })();
+// Restore saved language
+(function() { try { const l = localStorage.getItem('eli6_lang'); if (l) setLang(l); } catch(_) {} })();
 </script>
 </body>
 </html>
