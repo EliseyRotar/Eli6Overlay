@@ -46,8 +46,8 @@
       "url": "https://github.com/EliseyRotar"
     },
     "url": "https://eliseyrotar.github.io/Eli6Overlay/",
-    "downloadUrl": "https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe",
-    "softwareVersion": "1.0.0",
+    "downloadUrl": "https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup-1.2.0.exe",
+    "softwareVersion": "1.2.0",
     "license": "https://github.com/EliseyRotar/Eli6Overlay/blob/master/LICENSE",
     "codeRepository": "https://github.com/EliseyRotar/Eli6Overlay",
     "keywords": "invisible browser, anti screen capture, OBS hide window, Discord screen share bypass, transparent overlay"
@@ -644,7 +644,7 @@
     <a href="#features" id="nf">features</a>
     <a href="#hotkeys" id="nh">hotkeys</a>
     <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">github</a>
-    <a class="nav-dl" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe" id="ndl">download.exe</a>
+    <a class="nav-dl" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup-1.2.0.exe" id="ndl">download.exe</a>
     <div class="ls">
       <button class="lb on" id="lb-en" onclick="setLang('en')">EN</button>
       <button class="lb" id="lb-it" onclick="setLang('it')">IT</button>
@@ -661,7 +661,7 @@
       Eli6Overlay is a browser window that runs on top of every other app and is <strong>completely invisible to screen recording software</strong>. Not minimized. Not hidden. Physically excluded from every capture path by Windows itself.
     </p>
     <div class="hero-actions">
-      <a class="btn-main" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe" id="h-dl">
+      <a class="btn-main" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup-1.2.0.exe" id="h-dl">
         <svg viewBox="0 0 24 24"><path d="M12 16l-5-5 1.4-1.4 2.6 2.6V4h2v8.2l2.6-2.6L17 11l-5 5zm-7 2h14v2H5v-2z"/></svg>
         <span id="h-dl-t">Download for Windows</span>
       </a>
@@ -881,12 +881,12 @@
       </div>
     </div>
     <div class="dl-right">
-      <a class="btn-main" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe" id="dl-btn">
+      <a class="btn-main" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup-1.2.0.exe" id="dl-btn">
         <svg viewBox="0 0 24 24"><path d="M12 16l-5-5 1.4-1.4 2.6 2.6V4h2v8.2l2.6-2.6L17 11l-5 5zm-7 2h14v2H5v-2z"/></svg>
         <span id="dl-btn-t">Eli6Overlay-Setup.exe</span>
       </a>
       <div class="dl-meta">
-        <span id="dm1">v1.0.0 Â· ~70 MB</span>
+        <span id="dm1">v1.2.0 · ~70 MB</span>
         <span id="dm2">Windows x64</span>
         <span id="dm3">MIT License</span>
       </div>
@@ -940,7 +940,7 @@ const T = {
     dlH:'Download', dlP1:'Windows 10 (build 1903+) or Windows 11, 64-bit. Single executable, no installer wizard.',
     dlP2:'Free. MIT License. No account, no telemetry, no update server.',
     spBox:'<strong>Code signing:</strong> This project uses <a href="https://signpath.org" target="_blank" rel="noopener">SignPath Foundation</a> for free trusted signing of Windows executables. If you see a SmartScreen warning, click <strong>"More info" â†’ "Run anyway"</strong> â€” signing approval is in progress. Source code: <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a>.',
-    dlBtnT:'Eli6Overlay-Setup.exe', dm1:'v1.0.0 Â· ~70 MB', dm2:'Windows x64', dm3:'MIT License',
+    dlBtnT:'Eli6Overlay-Setup-1.2.0.exe', dm1:'v1.2.0 · ~77 MB', dm2:'Windows x64', dm3:'MIT License',
     flR:'releases', flI:'issues', flP:'privacy', flS:'signing',
   },
   it: {
@@ -974,7 +974,7 @@ const T = {
     dlH:'Scarica', dlP1:'Windows 10 (build 1903+) o Windows 11, 64-bit. Eseguibile singolo, nessun wizard.',
     dlP2:'Gratuito. Licenza MIT. Nessun account, nessuna telemetria, nessun server di aggiornamento.',
     spBox:'<strong>Firma del codice:</strong> Questo progetto usa <a href="https://signpath.org" target="_blank" rel="noopener">SignPath Foundation</a> per la firma gratuita degli eseguibili Windows. Se compare SmartScreen, clicca <strong>"Altre informazioni" â†’ "Esegui comunque"</strong>. Codice sorgente: <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener">GitHub</a>.',
-    dlBtnT:'Eli6Overlay-Setup.exe', dm1:'v1.0.0 Â· ~70 MB', dm2:'Windows x64', dm3:'Licenza MIT',
+    dlBtnT:'Eli6Overlay-Setup-1.2.0.exe', dm1:'v1.2.0 · ~77 MB', dm2:'Windows x64', dm3:'Licenza MIT',
     flR:'release', flI:'segnalazioni', flP:'privacy', flS:'firma codice',
   }
 };
@@ -1018,6 +1018,64 @@ function setLang(lang) {
     // Fallback: English
     setLang('en');
   } catch(_) { setLang('en'); }
+})();
+
+// ── Auto-fetch latest release from GitHub API ─────────────────────────────
+// Updates version number, download URL, and filename automatically.
+// No manual website edits needed when a new version is released.
+(function fetchLatestRelease() {
+  const OWNER = 'EliseyRotar';
+  const REPO  = 'Eli6Overlay';
+  const API   = `https://api.github.com/repos/${OWNER}/${REPO}/releases/latest`;
+
+  fetch(API, { headers: { 'Accept': 'application/vnd.github+json' } })
+    .then((r) => r.json())
+    .then((data) => {
+      if (!data || !data.tag_name) return;
+
+      const tag     = data.tag_name;             // e.g. "v1.2.0"
+      const version = tag.replace(/^v/, '');     // e.g. "1.2.0"
+      const pubDate = data.published_at ? new Date(data.published_at).toLocaleDateString('en-GB', { year:'numeric', month:'short', day:'numeric' }) : '';
+
+      // Find the .exe asset
+      const exeAsset = (data.assets || []).find((a) => a.name.endsWith('.exe') && a.name.includes('Setup'));
+      const dlUrl = exeAsset
+        ? exeAsset.browser_download_url
+        : `https://github.com/${OWNER}/${REPO}/releases/download/${tag}/Eli6Overlay-Setup-${version}.exe`;
+      const fileName = exeAsset ? exeAsset.name : `Eli6Overlay-Setup-${version}.exe`;
+      const sizeMB   = exeAsset ? Math.round(exeAsset.size / 1024 / 1024) + ' MB' : '~77 MB';
+
+      // Update all download links on the page
+      ['ndl', 'h-dl', 'dl-btn'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.href = dlUrl;
+      });
+
+      // Update button text and metadata
+      const btnT = document.getElementById('dl-btn-t');
+      if (btnT) btnT.textContent = fileName;
+
+      const dm1 = document.getElementById('dm1');
+      if (dm1) dm1.textContent = `${tag} · ${sizeMB}${pubDate ? ' · ' + pubDate : ''}`;
+
+      // Update JSON-LD structured data version
+      const ld = document.querySelector('script[type="application/ld+json"]');
+      if (ld) {
+        try {
+          const obj = JSON.parse(ld.textContent);
+          obj.softwareVersion = version;
+          obj.downloadUrl = dlUrl;
+          ld.textContent = JSON.stringify(obj, null, 2);
+        } catch(_) {}
+      }
+
+      // Update nav download button label
+      const navDl = document.getElementById('ndl');
+      if (navDl) navDl.textContent = `download-${version}.exe`;
+    })
+    .catch(() => {
+      // No network or rate-limited — silent fail, static fallback stays
+    });
 })();
 </script>
 </body>

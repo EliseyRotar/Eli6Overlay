@@ -57,7 +57,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Eli6Overlay",
-      "artifactName": "Eli6Overlay-Setup.exe",
+      "artifactName": "Eli6Overlay-Setup-${version}.exe",
       "deleteAppDataOnUninstall": false
     },
     "portable": {
