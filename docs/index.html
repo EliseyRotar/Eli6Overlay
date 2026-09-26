@@ -633,6 +633,181 @@
     .footer-links { display: flex; gap: 20px; }
     .footer-links a { font-size: 12px; color: var(--low); text-decoration: none; }
     .footer-links a:hover { color: var(--mid); }
+
+    /* ══════════════════════════════════════════════
+       MOBILE — hamburger menu toggle
+    ══════════════════════════════════════════════ */
+    .nav-menu-btn {
+      display: none;
+      background: none; border: 1px solid var(--border2);
+      border-radius: 4px; color: var(--mid);
+      width: 36px; height: 36px;
+      cursor: pointer; font-size: 16px;
+      align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    #mobile-menu {
+      display: none;
+      position: fixed; top: 56px; left: 0; right: 0;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      z-index: 200;
+      padding: 12px 5vw 16px;
+      flex-direction: column;
+      gap: 0;
+    }
+    #mobile-menu.open { display: flex; }
+    #mobile-menu a {
+      display: block;
+      padding: 13px 0;
+      font-size: 15px;
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+    }
+    #mobile-menu a:last-child { border-bottom: none; }
+    #mobile-menu a.mm-dl {
+      color: var(--accent);
+      font-weight: 700;
+      font-family: var(--mono);
+      font-size: 13px;
+      border-bottom: none;
+      margin-top: 8px;
+    }
+
+    /* ══════════════════════════════════════════════
+       TABLET  ≤ 900px
+    ══════════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .hero { padding: 100px 5vw 60px; gap: 40px; }
+      h1 { font-size: clamp(2rem, 6vw, 3rem); }
+    }
+
+    /* ══════════════════════════════════════════════
+       MOBILE  ≤ 640px
+    ══════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      /* Nav */
+      nav { padding: 0 4vw; }
+      .nav-right { display: none; }
+      .nav-menu-btn { display: flex; }
+
+      /* Hero — single column, left-aligned, big CTA */
+      .hero {
+        padding: 80px 4vw 48px;
+        grid-template-columns: 1fr;
+        gap: 36px;
+        min-height: auto;
+        text-align: left;
+      }
+      .hero-left { padding-top: 0; }
+      h1 {
+        font-size: clamp(2rem, 9vw, 2.8rem);
+        line-height: 1.08;
+      }
+      .hero-claim { font-size: 15px; max-width: 100%; margin-bottom: 28px; }
+      .hero-eyebrow { font-size: 10px; margin-bottom: 16px; }
+
+      /* Hero CTA — full-width button on mobile */
+      .hero-actions { flex-direction: column; gap: 10px; }
+      .btn-main {
+        width: 100%;
+        justify-content: center;
+        padding: 16px 20px;
+        font-size: 15px;
+        min-height: 52px; /* 52px > 48px touch target */
+        border-radius: 6px;
+      }
+      .btn-second {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 20px;
+        min-height: 48px;
+      }
+      .hero-note { font-size: 12px; }
+
+      /* Terminal card — shrink font, scroll overflow */
+      .hero-right { padding-top: 0; }
+      .terminal-body {
+        font-size: 11px;
+        line-height: 1.7;
+        padding: 14px;
+        overflow-x: auto;
+      }
+      .tags { gap: 5px; }
+      .tag { font-size: 9px; padding: 2px 7px; }
+
+      /* API section */
+      .api-section { padding: 48px 4vw; gap: 32px; }
+      .api-left h2 { font-size: clamp(1.3rem, 6vw, 1.8rem); }
+      .hex-badge { font-size: 13px; padding: 5px 10px; }
+      .code-card-body {
+        font-size: 11px; padding: 14px;
+        overflow-x: auto;
+      }
+
+      /* Features */
+      .features-section { padding: 48px 4vw; }
+      .features-header { flex-direction: column; gap: 4px; align-items: flex-start; }
+      .features-header h2 { font-size: 18px; }
+      .feat-big  { grid-template-columns: 1fr; }
+      .feat-small { grid-template-columns: 1fr; }
+      .fc { padding: 20px; }
+      .fc.big { padding: 24px; }
+      .fc h3 { font-size: 14px; }
+      .fc p  { font-size: 13px; }
+
+      /* Hotkeys */
+      .keys-section { padding: 48px 4vw; }
+      .keys-section h2 { font-size: 18px; margin-bottom: 24px; }
+      .keys-grid { grid-template-columns: 1fr; gap: 28px; }
+      .key-row { padding: 10px 0; }
+      .key-label { font-size: 13px; }
+      kbd { font-size: 10px; padding: 3px 6px; }
+
+      /* Download section */
+      .dl-section { padding: 48px 4vw; }
+      .dl-inner {
+        padding: 28px 20px;
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      .dl-text h2 { font-size: 20px; }
+      .dl-right { text-align: left; }
+      .dl-right .btn-main {
+        width: 100%;
+        justify-content: center;
+        min-height: 52px;
+        font-size: 14px;
+      }
+      .dl-meta { align-items: flex-start; }
+      .sp-box { font-size: 12px; padding: 12px 14px; }
+
+      /* Footer */
+      footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 20px 4vw;
+      }
+      .footer-links { flex-wrap: wrap; gap: 14px; }
+      .footer-links a { font-size: 13px; }
+
+      /* proof bar — hide on mobile, it clutters */
+      .proof-bar { display: none; }
+
+      /* used-by section */
+      .used-by-item { font-size: 12px; }
+    }
+
+    /* ══════════════════════════════════════════════
+       SMALL MOBILE  ≤ 380px
+    ══════════════════════════════════════════════ */
+    @media (max-width: 380px) {
+      h1 { font-size: 1.9rem; }
+      .hero { padding: 72px 4vw 36px; }
+      .terminal-body { font-size: 10px; }
+    }
   </style>
 </head>
 <body>
@@ -650,7 +825,22 @@
       <button class="lb" id="lb-it" onclick="setLang('it')">IT</button>
     </div>
   </div>
+  <!-- hamburger — only shown on mobile via CSS -->
+  <button class="nav-menu-btn" id="menu-toggle" aria-label="Menu" aria-expanded="false">&#9776;</button>
 </nav>
+
+<!-- mobile dropdown menu -->
+<div id="mobile-menu" role="navigation">
+  <a href="#features" id="mm-feat" onclick="closeMobileMenu()">Features</a>
+  <a href="#hotkeys" id="mm-keys" onclick="closeMobileMenu()">Hotkeys</a>
+  <a href="#download" id="mm-dl2" onclick="closeMobileMenu()">Download</a>
+  <a href="https://github.com/EliseyRotar/Eli6Overlay" target="_blank" rel="noopener" onclick="closeMobileMenu()">GitHub ↗</a>
+  <a class="mm-dl" href="https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup-1.2.0.exe" id="mm-dl" onclick="closeMobileMenu()">&#8595; Download Eli6Overlay</a>
+  <div style="display:flex;gap:8px;padding:12px 0 4px;border-top:1px solid var(--border);">
+    <button class="lb on" id="mm-lb-en" onclick="setLang('en');closeMobileMenu()" style="flex:1;padding:10px 0;font-size:13px;">EN</button>
+    <button class="lb" id="mm-lb-it" onclick="setLang('it');closeMobileMenu()" style="flex:1;padding:10px 0;font-size:13px;">IT</button>
+  </div>
+</div>
 
 <!-- â”€â”€ HERO â”€â”€ -->
 <div class="hero">
@@ -999,6 +1189,8 @@ function setLang(lang) {
   $('dl-h',s.dlH); $('dl-p1',s.dlP1); $('dl-p2',s.dlP2); $('sp-box',s.spBox);
   $('dl-btn-t',s.dlBtnT); $('dm1',s.dm1); $('dm2',s.dm2); $('dm3',s.dm3);
   $('fl-r',s.flR); $('fl-i',s.flI); $('fl-p',s.flP); $('fl-s',s.flS);
+  // Mobile menu labels
+  $('mm-feat', s.nf); $('mm-keys', s.nh);
   try { localStorage.setItem('eli6_lang', lang); } catch(_) {}
 }
 
@@ -1020,7 +1212,39 @@ function setLang(lang) {
   } catch(_) { setLang('en'); }
 })();
 
-// ── Auto-fetch latest release from GitHub API ─────────────────────────────
+// ── Hamburger menu ────────────────────────────────────────────────────────────
+const menuToggle  = document.getElementById('menu-toggle');
+const mobileMenu  = document.getElementById('mobile-menu');
+
+function openMobileMenu() {
+  mobileMenu.classList.add('open');
+  menuToggle.setAttribute('aria-expanded', 'true');
+  menuToggle.innerHTML = '&#10005;'; // × when open
+}
+function closeMobileMenu() {
+  mobileMenu.classList.remove('open');
+  menuToggle.setAttribute('aria-expanded', 'false');
+  menuToggle.innerHTML = '&#9776;'; // ☰ when closed
+}
+menuToggle.addEventListener('click', () => {
+  mobileMenu.classList.contains('open') ? closeMobileMenu() : openMobileMenu();
+});
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!mobileMenu.contains(e.target) && e.target !== menuToggle) closeMobileMenu();
+});
+// Close on Escape
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileMenu(); });
+
+// Sync mobile menu lang buttons with desktop lang switcher
+const _origSetLang = setLang;
+function setLang(lang) {
+  _origSetLang(lang);
+  const mmEn = document.getElementById('mm-lb-en');
+  const mmIt = document.getElementById('mm-lb-it');
+  if (mmEn) mmEn.classList.toggle('on', lang === 'en');
+  if (mmIt) mmIt.classList.toggle('on', lang === 'it');
+}
 // Updates version number, download URL, and filename automatically.
 // No manual website edits needed when a new version is released.
 (function fetchLatestRelease() {
@@ -1046,7 +1270,7 @@ function setLang(lang) {
       const sizeMB   = exeAsset ? Math.round(exeAsset.size / 1024 / 1024) + ' MB' : '~77 MB';
 
       // Update all download links on the page
-      ['ndl', 'h-dl', 'dl-btn'].forEach((id) => {
+      ['ndl', 'h-dl', 'dl-btn', 'mm-dl'].forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.href = dlUrl;
       });
