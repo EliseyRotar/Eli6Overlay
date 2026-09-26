@@ -42,20 +42,36 @@ let autoHideTimer = null;
 let popOutMode    = false;
 
 // ─── Paths ───────────────────────────────────────────────────────────────────
-const LOGO_PATH = path.join(__dirname, 'logo.png');
+// In packaged app, __dirname points inside the asar archive.
+// process.resourcesPath points to the real resources directory on disk.
+const APP_ROOT  = app.isPackaged ? process.resourcesPath : __dirname;
+const LOGO_PATH = path.join(APP_ROOT, 'app', 'logo.png');
+const LOGO_PATH_DEV = path.join(__dirname, 'logo.png');
 const ICON_PATH = path.join(__dirname, 'assets', 'icon.ico');
 
 // ─── Tray icon helper ─────────────────────────────────────────────────────────
 function getTrayIcon() {
-  // Prefer logo.png converted to nativeImage (handles transparency properly)
-  if (fs.existsSync(LOGO_PATH)) {
-    const img = nativeImage.createFromPath(LOGO_PATH);
-    if (!img.isEmpty()) return img.resize({ width: 16, height: 16 });
+  // Try every possible location the logo might be at runtime
+  const candidates = [
+    LOGO_PATH_DEV,                                                              // dev: project root
+    path.join(process.resourcesPath || '', 'app.asar.unpacked', 'logo.png'),   // packaged: unpacked
+    path.join(path.dirname(app.getPath('exe')), 'resources', 'app.asar.unpacked', 'logo.png'),
+    ICON_PATH,                                                                  // fallback: .ico
+  ];
+
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        const img = nativeImage.createFromPath(p);
+        if (!img.isEmpty()) return img.resize({ width: 16, height: 16 });
+      }
+    } catch (_) {}
   }
-  if (fs.existsSync(ICON_PATH)) return nativeImage.createFromPath(ICON_PATH);
-  // Fallback: 1×1 transparent pixel
+
+  // Final fallback: tiny green square so tray always has SOMETHING visible
   return nativeImage.createFromDataURL(
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAI0lEQVQ4jWNg' +
+    'YGD4z8BQDwAAAAAA//8DABSuCQFGiAKxAAAAAElFTkSuQmCC'
   );
 }
 
@@ -304,13 +320,14 @@ function panicHide() {
 
 // ─── Global hotkeys ───────────────────────────────────────────────────────────
 function registerHotkeys() {
-  // Win+G toggle — this now works after window close because the process never dies
-  const ok = globalShortcut.register('Super+G', toggleVisibility);
-  if (!ok) globalShortcut.register('Control+Shift+G', toggleVisibility);
-
-  // Always register the Ctrl+Shift+G fallback too
+  // Ctrl+Shift+G — toggle visibility (show/hide)
   globalShortcut.register('Control+Shift+G', toggleVisibility);
-  globalShortcut.register('Super+Shift+C', toggleClickThrough);
+
+  // Ctrl+Shift+C — toggle click-through
+  globalShortcut.register('Control+Shift+C', toggleClickThrough);
+
+  // Ctrl+Shift+X — panic hide (global emergency key)
+  globalShortcut.register('Control+Shift+X', panicHide);
 }
 
 // ─── IPC handlers ─────────────────────────────────────────────────────────────

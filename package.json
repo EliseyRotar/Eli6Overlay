@@ -37,6 +37,9 @@
       "node_modules/semver/**/*",
       "node_modules/js-yaml/**/*"
     ],
+    "asarUnpack": [
+      "logo.png"
+    ],
     "win": {
       "target": [
         { "target": "nsis",     "arch": ["x64"] },

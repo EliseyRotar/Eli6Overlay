@@ -61,9 +61,9 @@ Built for people who need a private, always-accessible browser that doesn't show
 
 | Shortcut | Action |
 |---|---|
-| `Win+G` | Toggle overlay visibility (Show / Hide) |
-| `Ctrl+Shift+G` | Toggle overlay visibility (fallback) |
-| `Win+Shift+C` | Toggle click-through mode |
+| `Ctrl+Shift+G` | Toggle overlay visibility (Show / Hide) |
+| `Ctrl+Shift+C` | Toggle click-through mode |
+| `Ctrl+Shift+X` | Panic hide (global) |
 
 ### In-App
 

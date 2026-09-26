@@ -48,8 +48,8 @@ window.I18N = {
 
     // Hotkeys help
     hotkeys:         'Hotkeys',
-    hkToggle:        'Win+G / Ctrl+Shift+G  →  Show/Hide',
-    hkClickThrough:  'Win+Shift+C  →  Toggle Click-Through',
+    hkToggle:        'Ctrl+Shift+G  →  Show/Hide',
+    hkClickThrough:  'Ctrl+Shift+C  →  Toggle Click-Through',
     hkEscape:        'Escape  →  Panic Hide',
   },
 
@@ -95,8 +95,8 @@ window.I18N = {
 
     // Hotkeys help
     hotkeys:         'Scorciatoie',
-    hkToggle:        'Win+G / Ctrl+Shift+G  →  Mostra/Nascondi',
-    hkClickThrough:  'Win+Shift+C  →  Attiva/disattiva Click-Through',
+    hkToggle:        'Ctrl+Shift+G  →  Mostra/Nascondi',
+    hkClickThrough:  'Ctrl+Shift+C  →  Attiva/disattiva Click-Through',
     hkEscape:        'Escape  →  Nascondersi di Emergenza',
   },
 };

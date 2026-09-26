@@ -520,7 +520,7 @@ function restoreSettings() {
   createScratchTab();
   const ids = Object.keys(tabs);
   if (ids.length) switchTab(Number(ids[0]));
-  setStatus('eli6overlay ready — Win+G to hide');
+  setStatus('eli6overlay ready — Ctrl+Shift+G to hide');
 })();
 
 function createScratchTab() {
