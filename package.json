@@ -1,6 +1,6 @@
 {
   "name": "eli6overlay",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Anti-capture transparent browser overlay for Windows",
   "main": "main.js",
   "author": "eli6 <nutellaelik@gmail.com>",
@@ -9,6 +9,9 @@
     "start": "electron .",
     "build": "electron-builder --win nsis",
     "build:portable": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "electron-updater": "6.3.9"
   },
   "devDependencies": {
     "electron": "32.2.7",
@@ -28,7 +31,11 @@
       "renderer.js",
       "i18n.js",
       "logo.png",
-      "assets/**/*"
+      "assets/**/*",
+      "node_modules/electron-updater/**/*",
+      "node_modules/builder-util-runtime/**/*",
+      "node_modules/semver/**/*",
+      "node_modules/js-yaml/**/*"
     ],
     "win": {
       "target": [
@@ -52,6 +59,12 @@
     },
     "portable": {
       "artifactName": "Eli6Overlay-Portable.exe"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "EliseyRotar",
+      "repo": "Eli6Overlay",
+      "releaseType": "release"
     }
   }
 }

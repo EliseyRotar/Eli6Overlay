@@ -40,11 +40,15 @@ contextBridge.exposeInMainWorld('eli6', {
   // ── Screenshot ──────────────────────────────────────────────────────
   screenshot: () => ipcRenderer.invoke('capture-screenshot'),
 
+  // ── Updates ─────────────────────────────────────────────────────────
+  checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+
   // ── Events from main → renderer ────────────────────────────────────
   on: (channel, cb) => {
     const ALLOWED = [
       'set-mute', 'click-through-changed', 'panic-navigate',
       'show-lock-prompt', 'popout-changed', 'autostart-changed',
+      'update-available',
     ];
     if (!ALLOWED.includes(channel)) return () => {};
     const handler = (_e, ...args) => cb(...args);

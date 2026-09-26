@@ -535,7 +535,42 @@ function createScratchTab() {
   tabs[id] = { id, tabEl, webview: null, isScratch: true };
 }
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
+// ── Update banner ─────────────────────────────────────────────────────────────
+window.eli6.on('update-available', (info) => {
+  const banner  = $('update-banner');
+  const msg     = $('update-msg');
+  const dlBtn   = $('update-dl-btn');
+
+  msg.innerHTML = `<strong>v${info.version}</strong> is available — you're on v${__appVersion || '?'}`;
+  dlBtn.href    = `https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe`;
+
+  banner.classList.remove('hidden');
+  document.body.classList.add('has-update');
+  setStatus(`Update available: v${info.version}`);
+});
+
+$('update-dismiss').onclick = (e) => {
+  e.stopPropagation();
+  $('update-banner').classList.add('hidden');
+  document.body.classList.remove('has-update');
+};
+
+// Also add a "Check for updates" row in settings (below screenshot row)
+// and hook up the manual check button added in index.html
+const btnCheckUpdate = $('btn-check-update');
+if (btnCheckUpdate) {
+  btnCheckUpdate.onclick = (e) => {
+    e.stopPropagation();
+    window.eli6.checkForUpdates();
+    setStatus('Checking for updates…');
+  };
+}
+
+// App version for display — injected at build time via electron-builder
+// Falls back to reading package.json in dev
+const __appVersion = (() => {
+  try { return require('./package.json').version; } catch { return null; }
+})();
 function extractDomain(url) {
   try { return new URL(url).hostname.replace('www.', ''); } catch { return url.slice(0, 18); }
 }

@@ -378,7 +378,54 @@ ipcMain.handle('get-click-through', () => isClickThrough);
 ipcMain.handle('get-autostart',     () => getAutostart());
 ipcMain.handle('get-popout',        () => popOutMode);
 
-// ─── App lifecycle ────────────────────────────────────────────────────────────
+// ─── Auto-updater ─────────────────────────────────────────────────────────────
+// Check GitHub Releases for a newer version on startup.
+// autoDownload = false → never installs without user consent.
+// On update-available, we just send a notification to the renderer
+// which shows a subtle banner: "v1.x.x available — Download"
+function initUpdater() {
+  // Only run in packaged app — not in dev (no app-update.yml present)
+  if (!app.isPackaged) return;
+
+  try {
+    const { autoUpdater } = require('electron-updater');
+    autoUpdater.autoDownload        = false;
+    autoUpdater.autoInstallOnAppQuit = false;
+    autoUpdater.allowPrerelease     = false;
+
+    autoUpdater.on('update-available', (info) => {
+      // Tell the renderer to show the update banner
+      if (win && !win.isDestroyed()) {
+        win.webContents.send('update-available', {
+          version:      info.version,
+          releaseNotes: info.releaseNotes || '',
+          releaseDate:  info.releaseDate  || '',
+        });
+      }
+    });
+
+    autoUpdater.on('error', () => {
+      // Silently ignore — no network, GitHub down, etc. Don't bother the user.
+    });
+
+    // Check ~5 seconds after launch so startup isn't slowed down
+    setTimeout(() => {
+      autoUpdater.checkForUpdates().catch(() => {});
+    }, 5000);
+
+  } catch (_) {
+    // electron-updater not available in this build — ignore
+  }
+}
+
+// IPC: renderer can trigger a manual update check
+ipcMain.on('check-for-updates', () => {
+  if (!app.isPackaged) return;
+  try {
+    const { autoUpdater } = require('electron-updater');
+    autoUpdater.checkForUpdates().catch(() => {});
+  } catch (_) {}
+});
 app.whenReady().then(() => {
   // If launched by autostart and --autostart flag, start hidden
   const startHidden = process.argv.includes('--autostart');
@@ -387,6 +434,8 @@ app.whenReady().then(() => {
   createWindow();
   createTray();
   registerHotkeys();
+  initUpdater();
+  initUpdater();
 
   if (startHidden && win) {
     win.once('ready-to-show', () => { win.hide(); hideTint(); });
