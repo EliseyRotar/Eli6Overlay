@@ -22,6 +22,12 @@ let hideBlank = true;
 let homeURL   = lsGet('homepage', DEFAULT_HOME);
 let customBMs = JSON.parse(lsGet('bookmarks', '[]'));
 
+// Update banner state (declared early so language refreshes can touch it)
+let updateVersion = null;   // newest version the updater found
+let updateReady   = false;  // installer fully downloaded
+let updatePending = false;  // user pressed Update before the download finished
+let updatePct     = 0;      // download progress 0–100
+
 // ── DOM ───────────────────────────────────────────────────────────────────────
 const $  = (id) => document.getElementById(id);
 const tabsList       = $('tabs-list');
@@ -33,6 +39,7 @@ const settingsPnl    = $('settings-panel');
 const urlBar         = $('url-bar');
 const statusMsg      = $('status-msg');
 const btnMute        = $('btn-mute');
+const updBtn         = $('update-dl-btn');
 const iconMuteOn     = $('icon-mute-on');
 const iconMuteOff    = $('icon-mute-off');
 
@@ -427,6 +434,7 @@ function refreshDynamicLabels() {
     btnPO.textContent = i18n.t(on ? 'on' : 'off');
   }
   updateMuteUI();
+  if (updBtn && updateVersion) updBtn.textContent = updateBtnText();
 }
 document.addEventListener('i18n-changed', refreshDynamicLabels);
 
@@ -602,21 +610,82 @@ function createScratchTab() {
 }
 
 // ── Update banner ─────────────────────────────────────────────────────────────
+// One click = download + silent install + relaunch (no browser, no manual
+// installer). The button walks through: Download → Downloading… N% → Update now.
+function updateBtnText() {
+  if (updateReady)   return i18n.t('updateNow');
+  if (updatePending) return i18n.t('downloading').replace('{p}', Math.round(updatePct));
+  return i18n.t('download');
+}
+
 window.eli6.on('update-available', (info) => {
-  const banner  = $('update-banner');
-  const msg     = $('update-msg');
-  const dlBtn   = $('update-dl-btn');
+  if (updateReady || updatePending) return;  // already updating — keep the current state
+
+  updateVersion = info.version;
 
   const parts = i18n.t('updateAvail').split('—');
   const head = (parts[0] || '').replace('{new}', 'v' + info.version).trim();
   const tail = (parts[1] || '').replace('{current}', 'v' + (__appVersion || '?')).trim();
-  msg.innerHTML = `<strong>${esc(head)}</strong>${parts[1] ? ' — ' + esc(tail) : ''}`;
-  dlBtn.href    = `https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe`;
+  $('update-msg').innerHTML = `<strong>${esc(head)}</strong>${parts[1] ? ' — ' + esc(tail) : ''}`;
 
-  banner.classList.remove('hidden');
+  updBtn.disabled = false;
+  updBtn.textContent = updateBtnText();
+
+  $('update-banner').classList.remove('hidden');
   document.body.classList.add('has-update');
   setStatus(i18n.t('updateStatus').replace('{v}', 'v' + info.version));
 });
+
+window.eli6.on('update-progress', (p) => {
+  if (!updatePending) return;   // stray/late progress (nothing is downloading now)
+  updatePct = Math.max(0, Math.min(100, Number(p.percent) || 0));
+  const label = i18n.t('downloading').replace('{p}', Math.round(updatePct));
+  updBtn.textContent = label;
+  setStatus(label);
+});
+
+window.eli6.on('update-downloaded', () => {
+  if (!updatePending) return;   // stray event — the user is not updating right now
+  updateReady   = true;
+  updatePending = false;
+  updBtn.disabled = false;
+  updBtn.textContent = updateBtnText();
+  startInstall();               // the button was already pressed → finish the job
+});
+
+window.eli6.on('update-error', (e) => {
+  updateReady   = false;
+  updatePending = false;
+  updatePct     = 0;
+  updBtn.disabled = false;
+  updBtn.textContent = updateBtnText();
+  setStatus(i18n.t('updateFailed').replace('{e}', String(e || '').slice(0, 140)));
+});
+
+window.eli6.on('update-not-found', () => {
+  setStatus(i18n.t('upToDate').replace('{v}', 'v' + (__appVersion || '?')));
+});
+
+function startInstall() {
+  updBtn.disabled = true;
+  updBtn.textContent = i18n.t('installing');
+  setStatus(i18n.t('installing'));
+  // Give the status line a moment to be read before the app closes
+  setTimeout(() => { window.eli6.installUpdate(); }, 700);
+}
+
+updBtn.onclick = (e) => {
+  e.stopPropagation();
+  if (updBtn.disabled) return;
+  if (updateReady) { startInstall(); return; }
+  // First press: pull the installer down, install automatically when it lands
+  updatePending = true;
+  updatePct     = 0;
+  updBtn.disabled = true;
+  updBtn.textContent = updateBtnText();
+  setStatus(i18n.t('downloading').replace('{p}', 0));
+  window.eli6.downloadUpdate();
+};
 
 $('update-dismiss').onclick = (e) => {
   e.stopPropagation();
@@ -635,9 +704,10 @@ if (btnCheckUpdate) {
   };
 }
 
-// App version for display — injected at build time via electron-builder
-// Falls back to reading package.json in dev
+// App version for display — provided by the preload script (the renderer has
+// no require() since nodeIntegration is false)
 const __appVersion = (() => {
+  try { if (window.eli6 && window.eli6.version) return window.eli6.version; } catch (_e) {}
   try { return require('./package.json').version; } catch { return null; }
 })();
 function extractDomain(url) {

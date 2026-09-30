@@ -493,32 +493,58 @@ ipcMain.handle('get-adblocker', () => adBlockerEnabled);
 
 // ─── Auto-updater ─────────────────────────────────────────────────────────────
 // Check GitHub Releases for a newer version on startup.
-// autoDownload = false → never installs without user consent.
-// On update-available, we just send a notification to the renderer
-// which shows a subtle banner: "v1.x.x available — Download"
+// The download starts when the user presses the banner button; when it is
+// finished the same button installs it silently and relaunches the app —
+// one click = download + setup + restart, no browser, no manual installer.
+let updater      = null;
+let updateBusy   = false;
+
+function sendToRenderer(channel, payload) {
+  try { if (win && !win.isDestroyed()) win.webContents.send(channel, payload); } catch (_) {}
+}
+
 function initUpdater() {
   // Only run in packaged app — not in dev (no app-update.yml present)
   if (!app.isPackaged) return;
 
   try {
     const { autoUpdater } = require('electron-updater');
-    autoUpdater.autoDownload        = false;
-    autoUpdater.autoInstallOnAppQuit = false;
-    autoUpdater.allowPrerelease     = false;
+    updater = autoUpdater;
+    autoUpdater.autoDownload         = false;  // fetch starts on button click
+    autoUpdater.autoInstallOnAppQuit = false;  // install only via 'install-update'
+    autoUpdater.allowPrerelease      = false;
 
     autoUpdater.on('update-available', (info) => {
-      // Tell the renderer to show the update banner
-      if (win && !win.isDestroyed()) {
-        win.webContents.send('update-available', {
-          version:      info.version,
-          releaseNotes: info.releaseNotes || '',
-          releaseDate:  info.releaseDate  || '',
-        });
-      }
+      sendToRenderer('update-available', {
+        version:      info.version,
+        releaseNotes: info.releaseNotes || '',
+        releaseDate:  info.releaseDate  || '',
+      });
     });
 
-    autoUpdater.on('error', () => {
-      // Silently ignore — no network, GitHub down, etc. Don't bother the user.
+    autoUpdater.on('update-not-found', () => {
+      sendToRenderer('update-not-found', {});
+    });
+
+    autoUpdater.on('download-progress', (p) => {
+      sendToRenderer('update-progress', {
+        percent:    p.percent    || 0,
+        transferred: p.transferred || 0,
+        total:      p.total      || 0,
+      });
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+      updateBusy = false;
+      sendToRenderer('update-downloaded', { version: info.version });
+    });
+
+    autoUpdater.on('error', (err) => {
+      // Background check failures (no network, GitHub down) stay silent —
+      // only surface errors that happened while the user was updating.
+      if (!updateBusy) return;
+      updateBusy = false;
+      sendToRenderer('update-error', String((err && err.message) || err || 'unknown error'));
     });
 
     // Check ~5 seconds after launch so startup isn't slowed down
@@ -535,9 +561,36 @@ function initUpdater() {
 ipcMain.on('check-for-updates', () => {
   if (!app.isPackaged) return;
   try {
-    const { autoUpdater } = require('electron-updater');
-    autoUpdater.checkForUpdates().catch(() => {});
+    const target = updater || require('electron-updater').autoUpdater;
+    target.checkForUpdates().catch(() => {});
   } catch (_) {}
+});
+
+// IPC: start downloading the update the user just asked for
+ipcMain.on('download-update', () => {
+  if (!updater) return;
+  updateBusy = true;
+  try {
+    updater.downloadUpdate().catch((err) => {
+      updateBusy = false;
+      sendToRenderer('update-error', String((err && err.message) || err || 'unknown error'));
+    });
+  } catch (err) {
+    updateBusy = false;
+    sendToRenderer('update-error', String((err && err.message) || err || 'unknown error'));
+  }
+});
+
+// IPC: install the downloaded update silently and relaunch the app
+ipcMain.on('install-update', () => {
+  if (!updater) return;
+  try {
+    app.isQuiting = true;                     // let our 'close' handler quit instead of hiding
+    updater.quitAndInstall(true, true);       // silent NSIS install + force relaunch
+  } catch (err) {
+    app.isQuiting = false;
+    sendToRenderer('update-error', String((err && err.message) || err || 'unknown error'));
+  }
 });
 app.whenReady().then(async () => {
   // If launched by autostart flag, start hidden

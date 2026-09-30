@@ -813,12 +813,15 @@ kbd {
   font-size: 11px; font-weight: 700;
   color: #000;
   background: var(--accent);
+  border: none;
   border-radius: 3px;
   padding: 3px 10px;
+  cursor: pointer;
   text-decoration: none;
-  transition: background 120ms ease;
+  transition: background 120ms ease, opacity 120ms ease;
 }
 #update-dl-btn:hover { background: #5cef9f; color: #000; }
+#update-dl-btn:disabled { opacity: 0.65; cursor: default; }
 #update-dismiss {
   background: none; border: none;
   color: var(--fg-low); font-size: 12px;

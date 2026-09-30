@@ -2,7 +2,14 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
+// The renderer runs with nodeIntegration:false and cannot require() anything,
+// so the app version is read here (preload still has Node) and exposed with the API.
+let appVersion = null;
+try { appVersion = require('./package.json').version; } catch (_e) {}
+
 contextBridge.exposeInMainWorld('eli6', {
+  // ── App info ────────────────────────────────────────────────────────
+  version: appVersion,
   // ── Window control ──────────────────────────────────────────────────
   hide:  () => ipcRenderer.send('window-hide'),
   show:  () => ipcRenderer.send('window-show'),
@@ -46,13 +53,17 @@ contextBridge.exposeInMainWorld('eli6', {
 
   // ── Updates ─────────────────────────────────────────────────────────
   checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+  downloadUpdate:  () => ipcRenderer.send('download-update'),
+  installUpdate:   () => ipcRenderer.send('install-update'),
 
   // ── Events from main → renderer ────────────────────────────────────
   on: (channel, cb) => {
     const ALLOWED = [
       'set-mute', 'click-through-changed', 'panic-navigate',
       'show-lock-prompt', 'popout-changed', 'autostart-changed',
-      'update-available', 'adblocker-changed',
+      'update-available', 'update-progress', 'update-downloaded',
+      'update-error', 'update-not-found',
+      'adblocker-changed',
     ];
     if (!ALLOWED.includes(channel)) return () => {};
     const handler = (_e, ...args) => cb(...args);

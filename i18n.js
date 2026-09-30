@@ -137,6 +137,11 @@ window.I18N = {
     download:        'Download',
     updateAvail:     '{new} is available — you are on {current}',
     updateStatus:    'Update available: {v}',
+    updateNow:       'Update now',
+    downloading:     'Downloading… {p}%',
+    installing:      'Installing…',
+    updateFailed:    'Update failed: {e}',
+    upToDate:        'You are up to date ({v})',
 
     // Status bar badges
     badgeCT:         'CLICK-THROUGH',
@@ -277,6 +282,11 @@ window.I18N = {
     download:        'Scarica',
     updateAvail:     '{new} è disponibile — stai su {current}',
     updateStatus:    'Aggiornamento disponibile: {v}',
+    updateNow:       'Aggiorna ora',
+    downloading:     'Download in corso… {p}%',
+    installing:      'Installazione…',
+    updateFailed:    'Aggiornamento non riuscito: {e}',
+    upToDate:        'Sei aggiornato ({v})',
 
     // Status bar badges
     badgeCT:         'TRASPARENZA',
