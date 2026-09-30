@@ -153,7 +153,7 @@ $('btn-new-tab').onclick = () => createTab(homeURL);
 function updateMuteUI() {
   if (iconMuteOn)  iconMuteOn.style.display  = isMuted ? 'none' : '';
   if (iconMuteOff) iconMuteOff.style.display = isMuted ? ''     : 'none';
-  btnMute.title = isMuted ? 'Unmute' : 'Mute';
+  btnMute.title = isMuted ? i18n.t('unmuteBtn') : i18n.t('muteBtn');
 }
 function muteAll(m) {
   isMuted = m;
@@ -169,8 +169,33 @@ document.querySelectorAll('.bm-btn').forEach((b) => {
 });
 
 // ── Settings panel ────────────────────────────────────────────────────────────
-$('btn-settings').onclick  = (e) => { e.stopPropagation(); settingsPnl.classList.toggle('hidden'); };
-$('settings-close').onclick = (e) => { e.stopPropagation(); settingsPnl.classList.add('hidden'); };
+const settingsBody   = $('settings-body');
+const setupBackdrop  = $('setup-backdrop');
+
+function openSettings(setupMode) {
+  settingsPnl.classList.toggle('setup-mode', !!setupMode);
+  if (setupBackdrop) setupBackdrop.classList.toggle('hidden', !setupMode);
+  settingsPnl.classList.remove('hidden');
+  if (setupMode && settingsBody) settingsBody.scrollTop = 0;
+}
+function closeSettings() {
+  if (settingsPnl.classList.contains('setup-mode')) {
+    settingsPnl.classList.remove('setup-mode');
+    lsSet('onboarded', 'true');
+    setStatus(i18n.t('setupDone'));
+  }
+  settingsPnl.classList.add('hidden');
+  if (setupBackdrop) setupBackdrop.classList.add('hidden');
+}
+
+$('btn-settings').onclick = (e) => {
+  e.stopPropagation();
+  if (settingsPnl.classList.contains('hidden')) openSettings(false);
+  else closeSettings();
+};
+$('settings-close').onclick = (e) => { e.stopPropagation(); closeSettings(); };
+$('settings-start').onclick = (e) => { e.stopPropagation(); closeSettings(); };
+if (setupBackdrop) setupBackdrop.onclick = (e) => { e.stopPropagation(); closeSettings(); };
 
 // ── Opacity ───────────────────────────────────────────────────────────────────
 const opSlider = $('opacity-slider');
@@ -358,31 +383,59 @@ window.eli6.on('autostart-changed', (v) => { chkAutostart.checked = !!v; });
 $('btn-screenshot').onclick = async (e) => {
   e.stopPropagation();
   const path = await window.eli6.screenshot();
-  if (path) setStatus('Screenshot saved: ' + path);
-  else setStatus('Screenshot cancelled.');
+  if (path) setStatus(i18n.t('ssSaved') + path);
+  else setStatus(i18n.t('ssCancelled'));
 };
 
 // ── Language ──────────────────────────────────────────────────────────────────
+const LANG_BTN_IDS = ['btn-en','btn-it','s-btn-en','s-btn-it','setup-btn-en','setup-btn-it'];
+
+/** Default locale from the Windows/UI language (Italian if OS language is IT). */
+function detectLang() {
+  try {
+    const nav = String(navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    return nav.startsWith('it') ? 'it' : 'en';
+  } catch { return 'en'; }
+}
+
 function applyLang(lang) {
   i18n.set(lang);
-  ['btn-en','btn-it'].forEach((id) => {
-    $(id).classList.toggle('active', id.endsWith(lang));
-  });
-  ['s-btn-en','s-btn-it'].forEach((id) => {
-    $(id).classList.toggle('active', id.endsWith(lang));
+  LANG_BTN_IDS.forEach((id) => {
+    const el = $(id);
+    if (el) el.classList.toggle('active', id.endsWith(lang));
   });
   // Update scratchpad tab label if it exists
   Object.values(tabs).filter((t) => t.isScratch).forEach((t) => {
     const s = t.tabEl.querySelector('.tab-title');
     if (s) s.textContent = i18n.t('scratchpad');
   });
+  refreshDynamicLabels();
   lsSet('lang', lang);
 }
 
-$('btn-en').onclick   = (e) => { e.stopPropagation(); applyLang('en'); };
-$('btn-it').onclick   = (e) => { e.stopPropagation(); applyLang('it'); };
-$('s-btn-en').onclick = (e) => { e.stopPropagation(); applyLang('en'); };
-$('s-btn-it').onclick = (e) => { e.stopPropagation(); applyLang('it'); };
+/**
+ * Re-render text that i18n.set() cannot know about (state-dependent labels).
+ * Runs on every locale switch; safe to call any time.
+ */
+function refreshDynamicLabels() {
+  if (btnCT) {
+    const on = btnCT.dataset.on === 'true';
+    btnCT.textContent = i18n.t(on ? 'on' : 'off');
+  }
+  if (btnPO) {
+    const on = btnPO.dataset.on === 'true';
+    btnPO.textContent = i18n.t(on ? 'on' : 'off');
+  }
+  updateMuteUI();
+}
+document.addEventListener('i18n-changed', refreshDynamicLabels);
+
+$('btn-en').onclick       = (e) => { e.stopPropagation(); applyLang('en'); };
+$('btn-it').onclick       = (e) => { e.stopPropagation(); applyLang('it'); };
+$('s-btn-en').onclick     = (e) => { e.stopPropagation(); applyLang('en'); };
+$('s-btn-it').onclick     = (e) => { e.stopPropagation(); applyLang('it'); };
+$('setup-btn-en').onclick = (e) => { e.stopPropagation(); applyLang('en'); };
+$('setup-btn-it').onclick = (e) => { e.stopPropagation(); applyLang('it'); };
 
 // ── IPC events from main ──────────────────────────────────────────────────────
 window.eli6.on('set-mute', (m) => {
@@ -391,16 +444,16 @@ window.eli6.on('set-mute', (m) => {
 
 window.eli6.on('click-through-changed', (on) => {
   btnCT.dataset.on = String(on);
-  btnCT.textContent = on ? 'On' : 'Off';
+  btnCT.textContent = i18n.t(on ? 'on' : 'off');
   $('ct-badge').classList.toggle('hidden', !on);
-  setStatus(on ? '● Click-through ON' : '○ Click-through OFF');
+  setStatus(i18n.t(on ? 'ctStatusOn' : 'ctStatusOff'));
 });
 
 window.eli6.on('popout-changed', (on) => {
   btnPO.dataset.on = String(on);
-  btnPO.textContent = on ? 'On' : 'Off';
+  btnPO.textContent = i18n.t(on ? 'on' : 'off');
   $('po-badge').classList.toggle('hidden', !on);
-  setStatus(on ? 'Pop-out mode ON' : 'Pop-out mode OFF');
+  setStatus(i18n.t(on ? 'poStatusOn' : 'poStatusOff'));
 });
 
 window.eli6.on('panic-navigate', () => {
@@ -458,7 +511,7 @@ scratchTxt.addEventListener('input', () => {
   clearTimeout(scratchTimer);
   scratchTimer = setTimeout(() => {
     lsSet('scratchpad', scratchTxt.value);
-    scratchStat.textContent = 'Saved';
+    scratchStat.textContent = i18n.t('saved');
     setTimeout(() => { scratchStat.textContent = ''; }, 1500);
   }, 600);
 });
@@ -482,7 +535,7 @@ scratchTxt.addEventListener('input', () => {
 
 // ── Restore settings from localStorage ───────────────────────────────────────
 function restoreSettings() {
-  const lang = lsGet('lang', 'en');
+  const lang = lsGet('lang', detectLang());
   applyLang(lang);
 
   const opacity = parseInt(lsGet('opacity', '100'));
@@ -529,7 +582,11 @@ function restoreSettings() {
   createScratchTab();
   const ids = Object.keys(tabs);
   if (ids.length) switchTab(Number(ids[0]));
-  setStatus('eli6overlay ready — Ctrl+Shift+G to hide');
+  setStatus(i18n.t('ready'));
+  // First run → full setup panel with a Start button
+  if (lsGet('onboarded', 'false') !== 'true') {
+    setTimeout(() => openSettings(true), 250);
+  }
 })();
 
 function createScratchTab() {
@@ -550,12 +607,15 @@ window.eli6.on('update-available', (info) => {
   const msg     = $('update-msg');
   const dlBtn   = $('update-dl-btn');
 
-  msg.innerHTML = `<strong>v${info.version}</strong> is available — you're on v${__appVersion || '?'}`;
+  const parts = i18n.t('updateAvail').split('—');
+  const head = (parts[0] || '').replace('{new}', 'v' + info.version).trim();
+  const tail = (parts[1] || '').replace('{current}', 'v' + (__appVersion || '?')).trim();
+  msg.innerHTML = `<strong>${esc(head)}</strong>${parts[1] ? ' — ' + esc(tail) : ''}`;
   dlBtn.href    = `https://github.com/EliseyRotar/Eli6Overlay/releases/latest/download/Eli6Overlay-Setup.exe`;
 
   banner.classList.remove('hidden');
   document.body.classList.add('has-update');
-  setStatus(`Update available: v${info.version}`);
+  setStatus(i18n.t('updateStatus').replace('{v}', 'v' + info.version));
 });
 
 $('update-dismiss').onclick = (e) => {
@@ -571,7 +631,7 @@ if (btnCheckUpdate) {
   btnCheckUpdate.onclick = (e) => {
     e.stopPropagation();
     window.eli6.checkForUpdates();
-    setStatus('Checking for updates…');
+    setStatus(i18n.t('checkingUpdates'));
   };
 }
 

@@ -381,6 +381,99 @@ html, body {
   padding: 0;
 }
 
+/* ── First-run setup mode: centered window over a dimmed overlay ── */
+#setup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 60;
+}
+
+#s-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#s-title-setup { display: none; }
+#settings-panel.setup-mode #s-title { display: none; }
+#settings-panel.setup-mode #s-title-setup {
+  display: inline;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg-hi);
+}
+#settings-start { display: none; }
+#settings-panel.setup-mode #settings-start { display: inline-block; }
+#settings-panel.setup-mode #settings-header { border-bottom-color: var(--accent); }
+
+/* The panel becomes a free-floating card in the middle of the overlay */
+#settings-panel.setup-mode {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100% - 40px));
+  height: min(560px, calc(100% - 48px));
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+  z-index: 61;
+}
+#settings-panel.setup-mode #settings-header {
+  background: var(--bg);
+  border-radius: 10px 10px 0 0;
+}
+#settings-panel.setup-mode #settings-body {
+  border-radius: 0 0 10px 10px;
+}
+#settings-panel.setup-mode .s-group:last-child { border-bottom: none; }
+
+#setup-note { display: none; }
+#settings-panel.setup-mode #setup-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--accent-dim);
+  border-bottom: 1px solid var(--border);
+}
+.setup-hi {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg-hi);
+}
+.setup-p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--fg-hi);
+  opacity: 0.9;
+}
+.setup-lang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+.setup-lang-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fg-hi);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+#settings-panel.setup-mode .s-lang-btn {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+#settings-panel.setup-mode .s-lang-btn.active {
+  background: var(--bg);
+  border-color: var(--fg-hi);
+}
+
 .s-group {
   border-bottom: 1px solid var(--border);
   padding: 12px 16px;

@@ -48,7 +48,17 @@ let popOutMode    = false;
 const APP_ROOT  = app.isPackaged ? process.resourcesPath : __dirname;
 const LOGO_PATH = path.join(APP_ROOT, 'app', 'logo.png');
 const LOGO_PATH_DEV = path.join(__dirname, 'logo.png');
-const ICON_PATH = path.join(__dirname, 'assets', 'icon.ico');
+// Window/taskbar icon. Must be a real file on disk when packaged — native icon
+// loading cannot read inside the asar archive, so prefer the unpacked copy.
+const ICON_PATH = (() => {
+  const unpacked = path.join(process.resourcesPath || '', 'app.asar.unpacked', 'assets', 'icon.ico');
+  const inAsar   = path.join(__dirname, 'assets', 'icon.ico');
+  const order    = app.isPackaged ? [unpacked, inAsar] : [inAsar, unpacked];
+  for (const p of order) {
+    try { if (p && fs.existsSync(p)) return p; } catch (_) {}
+  }
+  return '';
+})();
 
 // ─── Tray icon helper ─────────────────────────────────────────────────────────
 function getTrayIcon() {
@@ -145,6 +155,7 @@ function createWindow() {
     resizable: true,
     hasShadow: false,
     show: false,
+    icon: ICON_PATH || undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
