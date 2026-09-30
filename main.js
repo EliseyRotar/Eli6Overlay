@@ -11,6 +11,7 @@ const {
   shell,
   screen,
   dialog,
+  session,
 } = require('electron');
 const path = require('path');
 const fs   = require('fs');
@@ -395,6 +396,90 @@ ipcMain.handle('get-click-through', () => isClickThrough);
 ipcMain.handle('get-autostart',     () => getAutostart());
 ipcMain.handle('get-popout',        () => popOutMode);
 
+// ─── Ad blocker ───────────────────────────────────────────────────────────────
+// Uses @ghostery/adblocker-electron — EasyList + EasyPrivacy + uBlock Origin
+// filter lists. Hooks into session.defaultSession.webRequest to block requests
+// before they leave the machine. Webviews created without a `partition`
+// attribute resolve to the default session, so every tab is covered.
+//
+// Cosmetic filtering (element hiding / scriptlets) needs
+// session.registerPreloadScript, which Electron 32 does not expose — enabling it
+// throws, and that exception takes network blocking down with it. Network-level
+// blocking needs neither, so that is what ships here.
+const ADBLOCK_CONFIG = { loadCosmeticFilters: false };
+
+let adBlockerEnabled = true;   // on by default
+let adblocker = null;
+let adblockerBusy  = false;
+
+// Serialised engine cache: first launch downloads the lists once, later launches
+// read them from disk instantly (and keep working while offline).
+// Stale entries are dropped so the lists still refresh over time.
+const ADBLOCK_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;   // refresh weekly
+
+function adBlockerCache() {
+  const file = path.join(app.getPath('userData'), 'adblocker-engine.bin');
+  try {
+    const st = fs.statSync(file);
+    if (Date.now() - st.mtimeMs > ADBLOCK_CACHE_TTL) fs.unlinkSync(file);
+  } catch (_) {}
+  return {
+    path: file,
+    read:  (p) => fs.promises.readFile(p),
+    write: async (p, buf) => { try { await fs.promises.writeFile(p, buf); } catch (_) {} },
+  };
+}
+
+async function initAdBlocker() {
+  if (adblockerBusy || adblocker) return;
+  adblockerBusy = true;
+  try {
+    const { ElectronBlocker, adsAndTrackingLists } = require('@ghostery/adblocker-electron');
+    // Node's built-in fetch — no extra dependency. Wrapped so it is always
+    // called unbound (globalThis.fetch does not depend on a receiver).
+    const fetchImpl = (...args) => globalThis.fetch(...args);
+
+    const blocker = await ElectronBlocker.fromLists(
+      fetchImpl,
+      adsAndTrackingLists,
+      ADBLOCK_CONFIG,
+      adBlockerCache()
+    );
+    // Re-assert after deserialize(): a cache written with another config must
+    // never re-enable the cosmetic path (see ADBLOCK_CONFIG above).
+    blocker.config.loadCosmeticFilters = false;
+    adblocker = blocker;
+
+    if (adBlockerEnabled) {
+      adblocker.enableBlockingInSession(session.defaultSession);
+    }
+  } catch (e) {
+    // Offline or list download failed — browsing still works, no blocking.
+    // setAdBlocker(true) retries this later.
+    adblocker = null;
+  } finally {
+    adblockerBusy = false;
+  }
+}
+
+function setAdBlocker(enabled) {
+  adBlockerEnabled = enabled;
+  if (adblocker) {
+    try {
+      if (enabled) adblocker.enableBlockingInSession(session.defaultSession);
+      else         adblocker.disableBlockingInSession(session.defaultSession);
+    } catch (_) {}
+  } else if (enabled) {
+    initAdBlocker();   // startup attempt failed or was still running — make sure it lands
+  }
+  if (win && !win.isDestroyed()) {
+    win.webContents.send('adblocker-changed', enabled);
+  }
+}
+
+ipcMain.on('set-adblocker', (_e, enabled) => setAdBlocker(!!enabled));
+ipcMain.handle('get-adblocker', () => adBlockerEnabled);
+
 // ─── Auto-updater ─────────────────────────────────────────────────────────────
 // Check GitHub Releases for a newer version on startup.
 // autoDownload = false → never installs without user consent.
@@ -443,15 +528,33 @@ ipcMain.on('check-for-updates', () => {
     autoUpdater.checkForUpdates().catch(() => {});
   } catch (_) {}
 });
-app.whenReady().then(() => {
-  // If launched by autostart and --autostart flag, start hidden
+app.whenReady().then(async () => {
+  // If launched by autostart flag, start hidden
   const startHidden = process.argv.includes('--autostart');
+
+  // ── Autostart on first launch (default ON) ──────────────────────────────
+  // Only set once — if user toggles it off later, we respect that setting.
+  const FIRST_RUN_KEY = 'eli6_autostart_set';
+  if (!app.getLoginItemSettings().openAtLogin) {
+    try {
+      const userDataPath = app.getPath('userData');
+      const flagFile = require('path').join(userDataPath, FIRST_RUN_KEY);
+      if (!require('fs').existsSync(flagFile)) {
+        setAutostart(true);
+        require('fs').writeFileSync(flagFile, '1');
+      }
+    } catch (_) {}
+  }
+
+  // ── Ad blocker ──────────────────────────────────────────────────────────
+  // Deliberately not awaited: fetching the filter lists must never hold up
+  // window creation. Blocking is attached as soon as the engine is ready.
+  initAdBlocker();
 
   createTintWindow();
   createWindow();
   createTray();
   registerHotkeys();
-  initUpdater();
   initUpdater();
 
   if (startHidden && win) {

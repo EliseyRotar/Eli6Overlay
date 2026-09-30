@@ -71,7 +71,9 @@ html, body {
   flex-shrink: 0;
   position: relative;
   z-index: 50;
+  cursor: grab;
 }
+#titlebar:active { cursor: grabbing; }
 
 #tb-left {
   display: flex;
@@ -222,7 +224,21 @@ html, body {
   padding: 0 6px;
   gap: 3px;
   flex-shrink: 0;
+  -webkit-app-region: drag;
+  cursor: grab;
 }
+#nav-bar:active { cursor: grabbing; }
+
+/* All interactive children in nav-bar must opt out of drag */
+#nav-bar button,
+#nav-bar input,
+#nav-bar .bm-btn,
+#nav-bar #url-bar,
+#nav-bar #bookmarks-bar {
+  -webkit-app-region: no-drag;
+  cursor: default;
+}
+#nav-bar #url-bar { cursor: text; }
 
 .nav-btn {
   width: 24px; height: 24px;

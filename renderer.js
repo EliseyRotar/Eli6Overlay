@@ -222,6 +222,12 @@ const chkHideBlank = $('chk-hide-blank');
 chkAutoMute.onchange  = () => { autoMute = chkAutoMute.checked; lsSet('automute', autoMute); };
 chkHideBlank.onchange = () => { hideBlank = chkHideBlank.checked; lsSet('hideblank', hideBlank); };
 
+// ── Ad blocker ────────────────────────────────────────────────────────────────
+const chkAdBlocker = $('chk-adblocker');
+window.eli6.getAdBlocker().then((v) => { chkAdBlocker.checked = !!v; });
+chkAdBlocker.onchange = () => { window.eli6.setAdBlocker(chkAdBlocker.checked); lsSet('adblocker', chkAdBlocker.checked); };
+window.eli6.on('adblocker-changed', (v) => { chkAdBlocker.checked = !!v; });
+
 // ── Homepage ──────────────────────────────────────────────────────────────────
 const homeInput = $('homepage-input');
 homeInput.value = homeURL;
@@ -503,6 +509,9 @@ function restoreSettings() {
   const hb = lsGet('hideblank', 'true') === 'true';
   hideBlank = hb;
   chkHideBlank.checked = hb;
+
+  const adVal = lsGet('adblocker', 'true') === 'true';
+  if (chkAdBlocker) { chkAdBlocker.checked = adVal; window.eli6.setAdBlocker(adVal); }
 
   homeInput.value = homeURL;
 

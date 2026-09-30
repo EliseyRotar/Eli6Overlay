@@ -37,6 +37,10 @@ contextBridge.exposeInMainWorld('eli6', {
   setAutostart:  (v) => ipcRenderer.send('set-autostart', !!v),
   getAutostart:  () => ipcRenderer.invoke('get-autostart'),
 
+  // ── Ad blocker ──────────────────────────────────────────────────────────────
+  setAdBlocker: (v) => ipcRenderer.send('set-adblocker', !!v),
+  getAdBlocker: () => ipcRenderer.invoke('get-adblocker'),
+
   // ── Screenshot ──────────────────────────────────────────────────────
   screenshot: () => ipcRenderer.invoke('capture-screenshot'),
 
@@ -48,7 +52,7 @@ contextBridge.exposeInMainWorld('eli6', {
     const ALLOWED = [
       'set-mute', 'click-through-changed', 'panic-navigate',
       'show-lock-prompt', 'popout-changed', 'autostart-changed',
-      'update-available',
+      'update-available', 'adblocker-changed',
     ];
     if (!ALLOWED.includes(channel)) return () => {};
     const handler = (_e, ...args) => cb(...args);
